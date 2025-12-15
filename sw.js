@@ -1,13 +1,12 @@
-const CACHE = "form-app-v1";
+const CACHE = "form-app-v3"; // Increment version to force refresh
 const ASSETS = [
   "./",
   "./index.html",
   "./app.js",
-  "./pdf-lib.min.js",
   "./mapping.json",
   "./template.pdf",
-  "./DejaVuSans.ttf",
   "./manifest.json"
+  // REMOVED: "./DejaVuSans.ttf"
 ];
 
 self.addEventListener("install", e => {
