@@ -1,5 +1,6 @@
 /* ============================================================
-   DEBUG VERSION: STANDARD FONTS + RED BOXES
+   FINAL PRODUCTION VERSION
+   (Standard Fonts, Fixed Alignment, No Debug Lines)
    ============================================================ */
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
@@ -12,7 +13,6 @@ function fieldId(name) {
   return "f_" + name.replace(/[^A-Z0-9]/gi, "_");
 }
 
-/* ---------------- LOAD FILES ---------------- */
 Promise.all([
   fetch("mapping.json").then(r => r.json()),
   fetch("template.pdf").then(r => r.arrayBuffer())
@@ -20,14 +20,11 @@ Promise.all([
   alert("Failed to load files: " + err);
 });
 
-/* ---------------- INIT APP ---------------- */
-
 function initApp([mapping, templatePdfBytes]) {
 
   const fields = {};
   const patterns = {};
 
-  // Parse mapping
   for (const pageFields of Object.values(mapping.pages)) {
     for (const f of pageFields) {
       fields[f.name] ??= { name: f.name, multiline: !!f.multiline };
@@ -62,7 +59,6 @@ function initApp([mapping, templatePdfBytes]) {
     form.appendChild(input);
   }
 
-  /* -------- Pattern Engine -------- */
   function updatePatterns() {
     for (const [target, pattern] of Object.entries(patterns)) {
       let val = pattern.replace(/\{(.+?)\}/g, (_, k) => {
@@ -87,42 +83,34 @@ function initApp([mapping, templatePdfBytes]) {
 
         for (const f of pageFields) {
           const el = document.getElementById(fieldId(f.name));
-          
-          // Even if empty, we might want to see the box to debug. 
-          // If you only want to see boxes for filled fields, keep: if (!el || !el.value) continue;
-          // For debugging, it is often better to see ALL boxes:
-          if (!el) continue; 
+          if (!el || !el.value) continue;
 
           const [x, y, w, h] = f.rect;
 
-          // --- DEBUG: Draw Red Rectangle ---
-          page.drawRectangle({
-            x: x * SCALE,
-            y: pageHeight - (y + h) * SCALE, // Bottom-left corner of the box
-            width: w * SCALE,
-            height: h * SCALE,
-            borderColor: rgb(1, 0, 0), // Red
-            borderWidth: 1,
-          });
-          // ---------------------------------
-
-          // Only draw text if there is a value
-          if (el.value) {
-            page.drawText(el.value, {
-              x: x * SCALE,
-              y: pageHeight - (y + h) * SCALE + 4, // Slight offset for text baseline
-              size: f.font_size * SCALE,
-              maxWidth: w * SCALE,
-              lineHeight: f.multiline ? (f.font_size + 4) * SCALE : undefined,
-              font: helveticaFont,
-              color: rgb(0, 0, 0)
-            });
+          // --- ALIGNMENT LOGIC ---
+          let textY;
+          if (f.multiline) {
+             // Multi-line: Start at Top
+             textY = pageHeight - (y * SCALE) - (f.font_size * SCALE);
+          } else {
+             // Single-line: Start at Bottom
+             textY = pageHeight - ((y + h) * SCALE) + 4; 
           }
+
+          page.drawText(el.value, {
+            x: x * SCALE,
+            y: textY,
+            size: f.font_size * SCALE,
+            maxWidth: w * SCALE,
+            lineHeight: f.multiline ? (f.font_size + 4) * SCALE : undefined,
+            font: helveticaFont,
+            color: rgb(0, 0, 0)
+          });
         }
       }
 
       const bytes = await pdfDoc.save();
-      download(bytes, "debug_form.pdf");
+      download(bytes, "filled_form.pdf");
 
     } catch (err) {
       alert("PDF generation failed: " + err);
