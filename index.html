@@ -3,44 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <title>PDF Form Filler</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#1976d2" />
-
-  <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 16px;
-      max-width: 900px;
-      margin: auto;
-    }
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: bold;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 8px;
-      font-size: 15px;
-      box-sizing: border-box;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 70px;
-    }
-    .readonly {
-      background: #eee;
-    }
-    button {
-      margin-top: 24px;
-      padding: 12px 18px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+    body { font-family: Arial, sans-serif; padding: 16px; max-width: 900px; margin: auto; }
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input, textarea { width: 100%; padding: 8px; font-size: 15px; box-sizing: border-box; }
+    textarea { resize: vertical; min-height: 70px; }
+    .readonly { background: #eee; }
+    button { margin-top: 24px; padding: 12px 18px; font-size: 16px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -51,11 +24,9 @@
 
 <button id="generate" type="button">Generate PDF</button>
 
-<!-- LOCAL pdf-lib ONLY -->
-<script src="pdf-lib.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="app.js"></script>
 
-<!-- Service Worker -->
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
