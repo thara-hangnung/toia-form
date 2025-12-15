@@ -10,7 +10,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -23,7 +23,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -36,7 +36,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -49,7 +49,7 @@
           27
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -62,7 +62,7 @@
           32
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -75,7 +75,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -88,7 +88,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -101,7 +101,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -114,7 +114,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -127,7 +127,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -140,7 +140,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -153,7 +153,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -166,7 +166,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -179,7 +179,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -192,7 +192,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -205,7 +205,7 @@
           30
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -218,7 +218,7 @@
           87
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": true,
         "pattern": "{ROAD}, {LOCALITY}, {CITY}, {STATE} - {PINCODE}"
@@ -232,7 +232,7 @@
           81
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": true,
         "pattern": "{ROAD}, {LOCALITY}, {CITY}, {STATE} - {PINCODE}"
@@ -248,7 +248,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -261,7 +261,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -274,7 +274,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -287,7 +287,7 @@
           63
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": true,
         "pattern": "{LOCALITY}, {CITY}, {STATE} - {PINCODE}"
@@ -301,7 +301,7 @@
           32
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -314,7 +314,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       }
@@ -329,7 +329,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -342,7 +342,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -355,7 +355,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -368,7 +368,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -381,7 +381,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -394,7 +394,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -402,12 +402,12 @@
         "name": "CITY",
         "rect": [
           1133,
-          1223,
+          1203,
           300,
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -420,7 +420,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -433,7 +433,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -446,7 +446,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false
       },
@@ -459,7 +459,7 @@
           35
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false,
         "pattern": "{ID PROOF} - {PAN}"
@@ -473,7 +473,7 @@
           38
         ],
         "font": "DejaVuSans",
-        "font_size": 22,
+        "font_size": 20,
         "align": "left",
         "multiline": false,
         "pattern": "{ADDRESS PROOF} - {AADHAAR}"
