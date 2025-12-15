@@ -1,5 +1,5 @@
 /* ============================================================
-   STANDARD FONT VERSION (NO CUSTOM FONTS)
+   DEBUG VERSION: STANDARD FONTS + RED BOXES
    ============================================================ */
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
@@ -13,7 +13,6 @@ function fieldId(name) {
 }
 
 /* ---------------- LOAD FILES ---------------- */
-// Only load mapping and the template PDF
 Promise.all([
   fetch("mapping.json").then(r => r.json()),
   fetch("template.pdf").then(r => r.arrayBuffer())
@@ -79,10 +78,7 @@ function initApp([mapping, templatePdfBytes]) {
   document.getElementById("generate").onclick = async () => {
     try {
       const pdfDoc = await PDFDocument.load(templatePdfBytes);
-      
-      // Embed the Standard Font (Helvetica)
       const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
       const pages = pdfDoc.getPages();
 
       for (const [pageIndexStr, pageFields] of Object.entries(mapping.pages)) {
@@ -91,24 +87,42 @@ function initApp([mapping, templatePdfBytes]) {
 
         for (const f of pageFields) {
           const el = document.getElementById(fieldId(f.name));
-          if (!el || !el.value) continue;
+          
+          // Even if empty, we might want to see the box to debug. 
+          // If you only want to see boxes for filled fields, keep: if (!el || !el.value) continue;
+          // For debugging, it is often better to see ALL boxes:
+          if (!el) continue; 
 
           const [x, y, w, h] = f.rect;
 
-          page.drawText(el.value, {
+          // --- DEBUG: Draw Red Rectangle ---
+          page.drawRectangle({
             x: x * SCALE,
-            y: pageHeight - (y + h) * SCALE + 4,
-            size: f.font_size * SCALE,
-            maxWidth: w * SCALE,
-            lineHeight: f.multiline ? (f.font_size + 4) * SCALE : undefined,
-            font: helveticaFont, // Using Standard Font
-            color: rgb(0, 0, 0)
+            y: pageHeight - (y + h) * SCALE, // Bottom-left corner of the box
+            width: w * SCALE,
+            height: h * SCALE,
+            borderColor: rgb(1, 0, 0), // Red
+            borderWidth: 1,
           });
+          // ---------------------------------
+
+          // Only draw text if there is a value
+          if (el.value) {
+            page.drawText(el.value, {
+              x: x * SCALE,
+              y: pageHeight - (y + h) * SCALE + 4, // Slight offset for text baseline
+              size: f.font_size * SCALE,
+              maxWidth: w * SCALE,
+              lineHeight: f.multiline ? (f.font_size + 4) * SCALE : undefined,
+              font: helveticaFont,
+              color: rgb(0, 0, 0)
+            });
+          }
         }
       }
 
       const bytes = await pdfDoc.save();
-      download(bytes, "filled_form.pdf");
+      download(bytes, "debug_form.pdf");
 
     } catch (err) {
       alert("PDF generation failed: " + err);
