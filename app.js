@@ -1,5 +1,5 @@
 /* ============================================================
-   STANDARD-FONT VERSION (NO FONTKIT, NO TTF)
+   STANDARD FONT VERSION (NO CUSTOM FONTS)
    ============================================================ */
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
@@ -8,14 +8,12 @@ const SOURCE_DPI = 200;
 const PDF_DPI = 72;
 const SCALE = PDF_DPI / SOURCE_DPI;
 
-/* ---------------- UTILS ---------------- */
-
 function fieldId(name) {
   return "f_" + name.replace(/[^A-Z0-9]/gi, "_");
 }
 
 /* ---------------- LOAD FILES ---------------- */
-
+// Only load mapping and the template PDF
 Promise.all([
   fetch("mapping.json").then(r => r.json()),
   fetch("template.pdf").then(r => r.arrayBuffer())
@@ -30,6 +28,7 @@ function initApp([mapping, templatePdfBytes]) {
   const fields = {};
   const patterns = {};
 
+  // Parse mapping
   for (const pageFields of Object.values(mapping.pages)) {
     for (const f of pageFields) {
       fields[f.name] ??= { name: f.name, multiline: !!f.multiline };
@@ -40,7 +39,6 @@ function initApp([mapping, templatePdfBytes]) {
   const form = document.getElementById("dynamicForm");
 
   /* -------- Build Form -------- */
-
   for (const field of Object.values(fields)) {
     const label = document.createElement("label");
     label.textContent = field.name;
@@ -66,7 +64,6 @@ function initApp([mapping, templatePdfBytes]) {
   }
 
   /* -------- Pattern Engine -------- */
-
   function updatePatterns() {
     for (const [target, pattern] of Object.entries(patterns)) {
       let val = pattern.replace(/\{(.+?)\}/g, (_, k) => {
@@ -79,11 +76,13 @@ function initApp([mapping, templatePdfBytes]) {
   }
 
   /* -------- Generate PDF -------- */
-
   document.getElementById("generate").onclick = async () => {
     try {
       const pdfDoc = await PDFDocument.load(templatePdfBytes);
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      
+      // Embed the Standard Font (Helvetica)
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
       const pages = pdfDoc.getPages();
 
       for (const [pageIndexStr, pageFields] of Object.entries(mapping.pages)) {
@@ -102,7 +101,7 @@ function initApp([mapping, templatePdfBytes]) {
             size: f.font_size * SCALE,
             maxWidth: w * SCALE,
             lineHeight: f.multiline ? (f.font_size + 4) * SCALE : undefined,
-            font,
+            font: helveticaFont, // Using Standard Font
             color: rgb(0, 0, 0)
           });
         }
@@ -113,11 +112,10 @@ function initApp([mapping, templatePdfBytes]) {
 
     } catch (err) {
       alert("PDF generation failed: " + err);
+      console.error(err);
     }
   };
 }
-
-/* ---------------- DOWNLOAD ---------------- */
 
 function download(bytes, filename) {
   const blob = new Blob([bytes], { type: "application/pdf" });
