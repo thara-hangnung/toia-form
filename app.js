@@ -121,7 +121,7 @@ function initApp([mapping, templatePdfBytes, fontBytes]) {
   document.getElementById("generate").onclick = async () => {
     try {
       const pdfDoc = await PDFDocument.load(templatePdfBytes);
-      const font = await pdfDoc.embedFont(fontBytes);
+      const font = await pdfDoc.embedFont(PDFLib. StandardFonts.H elvetica);
       const pages = pdfDoc.getPages();
 
       for (const [pageIndexStr, pageFields] of Object.entries(mapping.pages)) {
