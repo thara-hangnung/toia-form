@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <title>PDF Form Filler</title>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1976d2" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
 
   <style>
     body {
@@ -21,6 +26,7 @@
       width: 100%;
       padding: 8px;
       font-size: 15px;
+      box-sizing: border-box;
     }
     textarea {
       resize: vertical;
@@ -33,6 +39,7 @@
       margin-top: 24px;
       padding: 12px 18px;
       font-size: 16px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -44,11 +51,16 @@
 
 <button id="generate" type="button">Generate PDF</button>
 
-<!-- ✅ Load pdf-lib as GLOBAL (no modules) -->
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
-<!-- ✅ Normal script, NOT module -->
+<!-- LOCAL dependencies (NO CDN, NO MODULES) -->
+<script src="pdf-lib.min.js"></script>
 <script src="app.js"></script>
+
+<!-- Service Worker -->
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+</script>
 
 </body>
 </html>
