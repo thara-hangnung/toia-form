@@ -1,14 +1,19 @@
 /* pdf-generator.js */
-const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
+const { PDFDocument, rgb } = window.PDFLib; 
+
 const SOURCE_DPI = 200;
 const PDF_DPI = 72;
 const SCALE = PDF_DPI / SOURCE_DPI;
 
 import { fieldId } from './ui.js';
 
-export async function generatePDF(mapping, templateBytes, getFieldValFn) {
+export async function generatePDF(mapping, templateBytes, fontBytes, getFieldValFn) {
   const pdfDoc = await PDFDocument.load(templateBytes);
-  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  
+  // Register FontKit & Embed Custom Font
+  pdfDoc.registerFontkit(window.fontkit);
+  const customFont = await pdfDoc.embedFont(fontBytes);
+
   const pages = pdfDoc.getPages();
 
   for (const [idxStr, fields] of Object.entries(mapping.pages)) {
@@ -46,20 +51,20 @@ export async function generatePDF(mapping, templateBytes, getFieldValFn) {
         textY = h - (y*SCALE) - fontSize;
         page.drawText(val, {
           x: textX, y: textY, size: fontSize,
-          maxWidth: w*SCALE, lineHeight: fontSize+2, font: helvetica
+          maxWidth: w*SCALE, lineHeight: fontSize+2, font: customFont
         });
       } else {
-        // Auto-Scale
-        let width = helvetica.widthOfTextAtSize(val, fontSize);
+        // Auto-Scale using custom font
+        let width = customFont.widthOfTextAtSize(val, fontSize);
         while (width > w*SCALE && fontSize > 6) {
           fontSize -= 0.5;
-          width = helvetica.widthOfTextAtSize(val, fontSize);
+          width = customFont.widthOfTextAtSize(val, fontSize);
         }
         if (f.align === "center") textX += (w*SCALE - width)/2;
         else if (f.align === "right") textX += (w*SCALE - width);
         
         textY = h - ((y+rectH)*SCALE) + 4;
-        page.drawText(val, { x: textX, y: textY, size: fontSize, font: helvetica });
+        page.drawText(val, { x: textX, y: textY, size: fontSize, font: customFont });
       }
     });
   }

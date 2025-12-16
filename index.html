@@ -15,19 +15,23 @@
     .auth-input, .search-box { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
     .btn-primary { width: 100%; padding: 12px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
     .btn-primary:hover { background: #115293; }
+    
     .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
     .template-btn { padding: 15px; background: white; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: 600; color: #444; }
     .template-btn:hover { border-color: #1976d2; color: #1976d2; background: #f0f7ff; }
+    
     .saved-item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .saved-info strong { display: block; color: #333; }
     .saved-info span { font-size: 13px; color: #666; }
     .btn-edit { background: #e3f2fd; color: #1976d2; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
     .btn-del { background: #ffebee; color: #c62828; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-left: 5px;}
+    
     fieldset { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
     legend { background: #1976d2; color: white; padding: 4px 10px; border-radius: 4px; font-size: 13px; }
     label { display: block; margin-top: 10px; font-weight: 600; font-size: 14px; color: #444; }
     input, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
     .readonly { background: #f0f0f0; color: #555; }
+    
     .toolbar { display: flex; gap: 10px; margin-top: 20px; }
     .toolbar button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
 
@@ -83,6 +87,8 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script> 
+  
   <script type="module" src="main.js"></script>
 
 </body>

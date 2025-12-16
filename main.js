@@ -1,23 +1,33 @@
-/* main.js - Entry Point */
+/* main.js */
 import * as Auth from './auth.js';
 import * as UI from './ui.js';
 import * as PDF from './pdf-generator.js';
 
 let currentMapping = null;
 let currentTemplateBytes = null;
+let currentFontBytes = null;
 let currentFormId = null;
 let currentFormType = "";
 let currentFormName = "";
-let patterns = {}; // Store pattern logic globally for updates
+let patterns = {}; 
+
+// --- DRAFT HELPERS ---
+function saveDraft(filename, data) {
+  localStorage.setItem("draft_" + filename, JSON.stringify(data));
+}
+function getDraft(filename) {
+  const raw = localStorage.getItem("draft_" + filename);
+  return raw ? JSON.parse(raw) : null;
+}
+function clearDraft(filename) {
+  localStorage.removeItem("draft_" + filename);
+}
 
 // --- INITIALIZATION ---
 window.addEventListener("DOMContentLoaded", async () => {
   const user = await Auth.initSupabase();
-  if (user) {
-    loadDashboard();
-  } else {
-    UI.showScreen("auth-screen");
-  }
+  if (user) loadDashboard();
+  else UI.showScreen("auth-screen");
 });
 
 // --- EVENT LISTENERS ---
@@ -87,21 +97,27 @@ document.getElementById("btn-save").onclick = async () => {
   if (error) UI.showToast("Error: " + error.message);
   else {
     UI.showToast("Saved Successfully!");
-    loadSavedList(); // Refresh list in background
+    clearDraft(currentFormType); // Clear local draft on successful DB save
+    loadSavedList(); 
   }
 };
 
 document.getElementById("btn-print").onclick = async () => {
-  if (!currentTemplateBytes) return;
+  if (!currentTemplateBytes || !currentFontBytes) return;
   
   let defaultName = (currentFormName || "filled_form").replace(".pdf", "") + ".pdf";
   const pdfName = prompt("PDF Filename:", defaultName);
   if (!pdfName) return;
 
-  const bytes = await PDF.generatePDF(currentMapping, currentTemplateBytes, (id) => {
-    const el = document.getElementById(id);
-    return el ? el.value : "";
-  });
+  const bytes = await PDF.generatePDF(
+    currentMapping, 
+    currentTemplateBytes, 
+    currentFontBytes,
+    (id) => {
+      const el = document.getElementById(id);
+      return el ? el.value : "";
+    }
+  );
 
   const blob = new Blob([bytes], { type: "application/pdf" });
   const a = document.createElement("a");
@@ -110,7 +126,7 @@ document.getElementById("btn-print").onclick = async () => {
   a.click();
 };
 
-// --- LOGIC FUNCTIONS ---
+// --- LOGIC ---
 
 function loadDashboard() {
   UI.showScreen("home-screen");
@@ -126,13 +142,10 @@ async function loadSavedList() {
   const { data, error } = await supabase
     .from('forms').select('*').eq('user_id', user.id).order('updated_at', { ascending: false });
 
-  if (error || !data) {
-    list.innerHTML = "Error loading forms.";
-    return;
-  }
+  if (error || !data) { list.innerHTML = "Error loading forms."; return; }
   
   if (data.length === 0) list.innerHTML = "<p style='text-align:center;color:#777'>No saved forms.</p>";
-  else list.innerHTML = ""; // Clear loading text
+  else list.innerHTML = ""; 
 
   data.forEach(form => {
     const div = document.createElement("div");
@@ -147,8 +160,6 @@ async function loadSavedList() {
         <button class="btn-del">Del</button>
       </div>
     `;
-    
-    // Attach events
     div.querySelector(".btn-edit").onclick = () => loadEditor(form.form_type, form);
     div.querySelector(".btn-del").onclick = async () => {
       if(confirm("Delete?")) {
@@ -165,21 +176,36 @@ async function loadEditor(filename, existingData) {
     currentFormType = filename;
     currentFormId = existingData ? existingData.id : null;
     currentFormName = existingData ? existingData.form_name : "";
-    patterns = {}; // Reset patterns
+    patterns = {}; 
 
-    const [mapping, pdfBytes] = await Promise.all([
+    // FETCH 3 FILES: Mapping, PDF, and TTF Font
+    const [mapping, pdfBytes, fontBytes] = await Promise.all([
       fetch(filename).then(r => r.json()),
-      fetch("template.pdf").then(r => r.arrayBuffer())
+      fetch("template.pdf").then(r => r.arrayBuffer()),
+      fetch("DejaVuSans.ttf").then(r => r.arrayBuffer()) 
     ]);
 
     currentMapping = mapping;
     currentTemplateBytes = pdfBytes;
+    currentFontBytes = fontBytes;
 
     UI.renderForm(mapping, patterns);
     
+    // RESTORE LOGIC: Database -> Draft -> Blank
     if (existingData) {
       UI.fillFormData(existingData.form_data);
+    } else {
+      const draft = getDraft(filename);
+      if (draft && confirm("Unsaved draft found. Restore it?")) {
+        UI.fillFormData(draft);
+      }
     }
+    
+    // Auto-Save Trigger
+    document.getElementById("dynamicForm").oninput = () => {
+       const { data } = UI.getFormData();
+       saveDraft(filename, data);
+    };
     
     UI.showScreen("form-screen");
 

@@ -1,4 +1,4 @@
-/* auth.js - Handles Supabase Auth */
+/* auth.js */
 const { createClient } = window.supabase;
 
 let supabase = null;
@@ -12,7 +12,6 @@ export async function initSupabase() {
     
     supabase = createClient(config.url, config.key);
     
-    // Check active session
     const { data } = await supabase.auth.getSession();
     user = data.session?.user || null;
     return user;
@@ -25,10 +24,8 @@ export async function initSupabase() {
 export async function login(email, password) {
   if (!supabase) return { error: { message: "Supabase not initialized" } };
   
-  // Try Login
   let { data, error } = await supabase.auth.signInWithPassword({ email, password });
   
-  // If user not found, try Registering
   if (error && error.message.includes("Invalid login")) {
     const res = await supabase.auth.signUp({ email, password });
     if (res.error) return { error: res.error };
