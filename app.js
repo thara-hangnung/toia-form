@@ -1,5 +1,6 @@
 /* ============================================================
-   UPDATED VERSION (Supports Groups, Static Values, Whiteout)
+   FINAL PRO VERSION 
+   (Matches Python Logic: Groups + Auto-Scale + Alignment)
    ============================================================ */
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
@@ -27,39 +28,31 @@ function initApp([mapping, templatePdfBytes]) {
   const uniqueFields = {};
   const patterns = {};
 
-  // 1. Scan all pages to find unique fields and their definitions
+  // 1. Scan and Deduplicate Fields
   for (const pageFields of Object.values(mapping.pages)) {
     for (const f of pageFields) {
-      // Skip if it's a whiteout or static field (no user input needed)
       if (f.type === "whiteout" || f.type === "static") continue;
 
-      // Store unique fields by name so we only create one input per field
       if (!uniqueFields[f.name]) {
         uniqueFields[f.name] = {
           name: f.name,
           multiline: !!f.multiline,
-          group: f.group || "General" // Default to General if no group
+          group: f.group || "General"
         };
       }
-
-      // Store pattern if it exists
       if (f.pattern) patterns[f.name] = f.pattern;
     }
   }
 
+  // 2. Build UI with Groups
   const form = document.getElementById("dynamicForm");
-  form.innerHTML = ""; // Clear existing form
-
-  // 2. Build the Form organized by Groups
-  const groupNames = mapping.groups || ["General"]; // Use groups from JSON or default
+  form.innerHTML = ""; 
+  const groupNames = mapping.groups || ["General"]; 
 
   for (const groupName of groupNames) {
-    // Find all fields that belong to this group
     const groupFields = Object.values(uniqueFields).filter(f => f.group === groupName);
-
     if (groupFields.length === 0) continue;
 
-    // Create a container/header for the group
     const fieldset = document.createElement("fieldset");
     fieldset.style.border = "1px solid #ccc";
     fieldset.style.padding = "10px";
@@ -68,10 +61,8 @@ function initApp([mapping, templatePdfBytes]) {
     const legend = document.createElement("legend");
     legend.textContent = groupName;
     legend.style.fontWeight = "bold";
-    legend.style.padding = "0 5px";
     fieldset.appendChild(legend);
 
-    // Create inputs for this group
     for (const field of groupFields) {
       const label = document.createElement("label");
       label.textContent = field.name;
@@ -88,7 +79,6 @@ function initApp([mapping, templatePdfBytes]) {
         updatePatterns();
       });
 
-      // If this field is calculated by a pattern (read-only)
       if (patterns[field.name]) {
         input.readOnly = true;
         input.classList.add("readonly");
@@ -98,7 +88,6 @@ function initApp([mapping, templatePdfBytes]) {
       fieldset.appendChild(label);
       fieldset.appendChild(input);
     }
-
     form.appendChild(fieldset);
   }
 
@@ -127,7 +116,7 @@ function initApp([mapping, templatePdfBytes]) {
 
         for (const f of pageFields) {
           
-          // 1. Handle Whiteouts (Erase content)
+          // --- 1. Handle Whiteout ---
           if (f.type === "whiteout") {
             const [x, y, w, h] = f.rect;
             page.drawRectangle({
@@ -135,49 +124,72 @@ function initApp([mapping, templatePdfBytes]) {
               y: pageHeight - (y + h) * SCALE,
               width: w * SCALE,
               height: h * SCALE,
-              color: rgb(1, 1, 1), // White
-              borderColor: undefined,
+              color: rgb(1, 1, 1), 
             });
-            continue; // Done with this field
+            continue; 
           }
 
-          // 2. Skip fields with no printable area (e.g. data-only fields like LOCALITY used for patterns)
-          if (!f.rect) continue;
+          if (!f.rect) continue; // Skip data-only fields
 
-          // 3. Determine Value to Print
+          // --- 2. Get Value ---
           let valueToPrint = "";
-
           if (f.type === "static") {
             valueToPrint = f.static_value || "";
           } else {
             const el = document.getElementById(fieldId(f.name));
             if (el) valueToPrint = el.value;
           }
-
           if (!valueToPrint) continue;
 
-          // 4. Draw Text
+          // --- 3. Auto-Scaling & Alignment ---
           const [x, y, w, h] = f.rect;
+          const boxWidth = w * SCALE;
+          const boxHeight = h * SCALE;
           
-          // Alignment Logic
+          let fontSize = f.font_size * SCALE;
+          let textX = x * SCALE;
           let textY;
-          if (f.multiline) {
-             // Multi-line: Start at Top
-             textY = pageHeight - (y * SCALE) - (f.font_size * SCALE);
-          } else {
-             // Single-line: Start at Bottom
-             textY = pageHeight - ((y + h) * SCALE) + 4; 
-          }
 
-          page.drawText(valueToPrint, {
-            x: x * SCALE,
-            y: textY,
-            size: f.font_size * SCALE,
-            maxWidth: w * SCALE,
-            lineHeight: f.multiline ? (f.font_size + 4) * SCALE : undefined,
-            font: helveticaFont,
-            color: rgb(0, 0, 0)
-          });
+          if (f.multiline) {
+             // Multiline: Standard wrap, Top Anchored
+             textY = pageHeight - (y * SCALE) - fontSize;
+             page.drawText(valueToPrint, {
+               x: textX,
+               y: textY,
+               size: fontSize,
+               maxWidth: boxWidth,
+               lineHeight: fontSize + 2,
+               font: helveticaFont,
+             });
+
+          } else {
+             // Single Line: Auto-Scale + Alignment + Bottom Anchor
+             
+             // Shrink to fit logic
+             let textWidth = helveticaFont.widthOfTextAtSize(valueToPrint, fontSize);
+             while (textWidth > boxWidth && fontSize > 6) {
+               fontSize -= 0.5;
+               textWidth = helveticaFont.widthOfTextAtSize(valueToPrint, fontSize);
+             }
+
+             // Alignment logic
+             if (f.align === "center") {
+               textX += (boxWidth - textWidth) / 2;
+             } else if (f.align === "right") {
+               textX += (boxWidth - textWidth);
+             }
+
+             // Bottom Anchor
+             textY = pageHeight - ((y + h) * SCALE) + 4;
+
+             page.drawText(valueToPrint, {
+               x: textX,
+               y: textY,
+               size: fontSize,
+               font: helveticaFont,
+               color: rgb(0, 0, 0)
+             });
+          }
         }
       }
 
