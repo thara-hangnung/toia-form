@@ -1,6 +1,5 @@
 /* ============================================================
-   FINAL PRO VERSION 
-   (Matches Python Logic: Groups + Auto-Scale + Alignment)
+   FIXED VERSION: SCOPED FIELDS (SEPARATE ADDRESSES)
    ============================================================ */
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
@@ -9,11 +8,13 @@ const SOURCE_DPI = 200;
 const PDF_DPI = 72;
 const SCALE = PDF_DPI / SOURCE_DPI;
 
-function fieldId(name) {
-  return "f_" + name.replace(/[^A-Z0-9]/gi, "_");
+// --- FIX 1: ID now includes the Group to prevent collisions ---
+function fieldId(name, group) {
+  const g = (group || "General").replace(/[^A-Z0-9]/gi, "_");
+  const n = name.replace(/[^A-Z0-9]/gi, "_");
+  return `f_${g}__${n}`;
 }
 
-/* ---------------- LOAD FILES ---------------- */
 Promise.all([
   fetch("mapping.json").then(r => r.json()),
   fetch("template.pdf").then(r => r.arrayBuffer())
@@ -21,36 +22,49 @@ Promise.all([
   alert("Failed to load files: " + err);
 });
 
-/* ---------------- INIT APP ---------------- */
-
 function initApp([mapping, templatePdfBytes]) {
 
-  const uniqueFields = {};
+  const uniqueFields = {}; 
   const patterns = {};
 
-  // 1. Scan and Deduplicate Fields
+  // 1. Scan fields and identify them by (Group + Name)
   for (const pageFields of Object.values(mapping.pages)) {
     for (const f of pageFields) {
       if (f.type === "whiteout" || f.type === "static") continue;
 
-      if (!uniqueFields[f.name]) {
-        uniqueFields[f.name] = {
+      const group = f.group || "General";
+      
+      // --- FIX 2: Key by Group + Name so "Nominee City" != "Applicant City" ---
+      const key = `${group}::${f.name}`;
+
+      if (!uniqueFields[key]) {
+        uniqueFields[key] = {
           name: f.name,
+          group: group,
           multiline: !!f.multiline,
-          group: f.group || "General"
+          id: fieldId(f.name, group) // Store the calculated ID
         };
       }
-      if (f.pattern) patterns[f.name] = f.pattern;
+      
+      if (f.pattern) {
+        patterns[key] = {
+          pattern: f.pattern,
+          targetId: fieldId(f.name, group),
+          group: group
+        };
+      }
     }
   }
 
-  // 2. Build UI with Groups
+  // 2. Build UI Group by Group
   const form = document.getElementById("dynamicForm");
   form.innerHTML = ""; 
   const groupNames = mapping.groups || ["General"]; 
 
   for (const groupName of groupNames) {
+    // Find all fields belonging to this group
     const groupFields = Object.values(uniqueFields).filter(f => f.group === groupName);
+    
     if (groupFields.length === 0) continue;
 
     const fieldset = document.createElement("fieldset");
@@ -72,14 +86,17 @@ function initApp([mapping, templatePdfBytes]) {
         ? document.createElement("textarea")
         : Object.assign(document.createElement("input"), { type: "text" });
 
-      input.id = fieldId(field.name);
+      input.id = field.id; // Use the scoped ID
 
       input.addEventListener("input", () => {
         input.value = input.value.toUpperCase();
         updatePatterns();
       });
 
-      if (patterns[field.name]) {
+      // If it's a calculated field, make it read-only
+      // We check if THIS specific field (group+name) has a pattern
+      const key = `${field.group}::${field.name}`;
+      if (patterns[key]) {
         input.readOnly = true;
         input.classList.add("readonly");
         input.style.backgroundColor = "#eee";
@@ -91,14 +108,17 @@ function initApp([mapping, templatePdfBytes]) {
     form.appendChild(fieldset);
   }
 
-  /* -------- Pattern Engine -------- */
+  /* -------- Pattern Engine (Scoped) -------- */
   function updatePatterns() {
-    for (const [target, pattern] of Object.entries(patterns)) {
-      let val = pattern.replace(/\{(.+?)\}/g, (_, k) => {
-        const el = document.getElementById(fieldId(k));
+    for (const p of Object.values(patterns)) {
+      // Replace {VAR} with the value of VAR *inside the same group*
+      let val = p.pattern.replace(/\{(.+?)\}/g, (_, varName) => {
+        const sourceId = fieldId(varName, p.group);
+        const el = document.getElementById(sourceId);
         return el ? el.value : "";
       });
-      const out = document.getElementById(fieldId(target));
+
+      const out = document.getElementById(p.targetId);
       if (out) out.value = val.toUpperCase();
     }
   }
@@ -116,7 +136,6 @@ function initApp([mapping, templatePdfBytes]) {
 
         for (const f of pageFields) {
           
-          // --- 1. Handle Whiteout ---
           if (f.type === "whiteout") {
             const [x, y, w, h] = f.rect;
             page.drawRectangle({
@@ -129,19 +148,20 @@ function initApp([mapping, templatePdfBytes]) {
             continue; 
           }
 
-          if (!f.rect) continue; // Skip data-only fields
+          if (!f.rect) continue; 
 
-          // --- 2. Get Value ---
+          // --- FIX 3: Retrieve value using the scoped ID ---
           let valueToPrint = "";
           if (f.type === "static") {
             valueToPrint = f.static_value || "";
           } else {
-            const el = document.getElementById(fieldId(f.name));
+            const el = document.getElementById(fieldId(f.name, f.group || "General"));
             if (el) valueToPrint = el.value;
           }
+          
           if (!valueToPrint) continue;
 
-          // --- 3. Auto-Scaling & Alignment ---
+          // --- Draw Text (Auto-Scale + Align) ---
           const [x, y, w, h] = f.rect;
           const boxWidth = w * SCALE;
           const boxHeight = h * SCALE;
@@ -151,7 +171,6 @@ function initApp([mapping, templatePdfBytes]) {
           let textY;
 
           if (f.multiline) {
-             // Multiline: Standard wrap, Top Anchored
              textY = pageHeight - (y * SCALE) - fontSize;
              page.drawText(valueToPrint, {
                x: textX,
@@ -161,25 +180,21 @@ function initApp([mapping, templatePdfBytes]) {
                lineHeight: fontSize + 2,
                font: helveticaFont,
              });
-
           } else {
-             // Single Line: Auto-Scale + Alignment + Bottom Anchor
-             
-             // Shrink to fit logic
+             // Shrink to fit
              let textWidth = helveticaFont.widthOfTextAtSize(valueToPrint, fontSize);
              while (textWidth > boxWidth && fontSize > 6) {
                fontSize -= 0.5;
                textWidth = helveticaFont.widthOfTextAtSize(valueToPrint, fontSize);
              }
 
-             // Alignment logic
+             // Align
              if (f.align === "center") {
                textX += (boxWidth - textWidth) / 2;
              } else if (f.align === "right") {
                textX += (boxWidth - textWidth);
              }
 
-             // Bottom Anchor
              textY = pageHeight - ((y + h) * SCALE) + 4;
 
              page.drawText(valueToPrint, {
