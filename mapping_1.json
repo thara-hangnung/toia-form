@@ -578,7 +578,7 @@
         "align": "left",
         "multiline": false,
         "group": "APPLICANT 1",
-        "pattern": "{ID PROOF} - {PAN}"
+        "pattern": "PAN - {PAN}"
       },
       {
         "name": "KYC ADDRESS",
@@ -593,7 +593,7 @@
         "align": "left",
         "multiline": false,
         "group": "APPLICANT 1",
-        "pattern": "{ADDRESS PROOF} - {AADHAAR}"
+        "pattern": "AADHAAR - {AADHAAR}"
       }
     ]
   },
