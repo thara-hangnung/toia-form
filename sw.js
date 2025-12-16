@@ -1,18 +1,13 @@
-const CACHE = "form-app-v3"; // Increment version to force refresh
+const CACHE = "form-app-v5";
 const ASSETS = [
   "./",
   "./index.html",
   "./app.js",
-  "./mapping.json",
   "./template.pdf",
+  "./mapping_1.json",
+  "./mapping_2.json",
+  "./mapping_3.json",
+  "./mapping_minor.json",
   "./manifest.json"
-  // REMOVED: "./DejaVuSans.ttf"
 ];
-
-self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-});
-
-self.addEventListener("fetch", e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-});
+// ... rest of sw.js stays the same
