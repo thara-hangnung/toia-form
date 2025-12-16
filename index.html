@@ -18,6 +18,12 @@
 
     /* Dashboard Styles */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    
+    /* FIX: Grid for Template Selection */
+    .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+    .template-btn { padding: 15px; background: white; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: 600; color: #444; transition: 0.2s; }
+    .template-btn:hover { border-color: #1976d2; color: #1976d2; background: #f0f7ff; }
+
     .saved-item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .saved-info strong { display: block; color: #333; }
     .saved-info span { font-size: 13px; color: #666; }
@@ -50,19 +56,24 @@
 
   <div id="home-screen" class="screen">
     <div class="header">
-      <h3>My Saved Forms</h3>
+      <h3>Dashboard</h3>
       <button onclick="handleLogout()" style="background:none; border:none; color:#d32f2f; cursor:pointer;">Logout</button>
     </div>
     
-    <div style="margin-bottom: 20px;">
-      <button class="btn-primary" onclick="openNewForm()">+ Create New Form</button>
+    <h4>Create New</h4>
+    <div class="template-grid">
+      <button class="template-btn" onclick="openNewForm('mapping_1.json')">1 Applicant</button>
+      <button class="template-btn" onclick="openNewForm('mapping_2.json')">2 Applicants</button>
+      <button class="template-btn" onclick="openNewForm('mapping_3.json')">3 Applicants</button>
+      <button class="template-btn" onclick="openNewForm('mapping_minor.json')">Minor Account</button>
     </div>
 
+    <h4>Saved Forms</h4>
     <div id="saved-list">Loading...</div>
   </div>
 
   <div id="form-screen" class="screen">
-    <button onclick="goHome()" style="background:#eee; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; margin-bottom:10px;">← Back to Dashboard</button>
+    <button onclick="goHome()" style="background:#eee; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; margin-bottom:10px;">← Back</button>
     
     <form id="dynamicForm"></form>
 
