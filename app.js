@@ -1,53 +1,188 @@
 /* ============================================================
-   MULTI-MAPPING VERSION (1, 2, 3 Applicants + Minor)
+   FULL APP: AUTH + DB + TWO-PASS PDF GENERATION
    ============================================================ */
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
+const { createClient } = window.supabase;
 
 const SOURCE_DPI = 200;
 const PDF_DPI = 72;
 const SCALE = PDF_DPI / SOURCE_DPI;
 
-let currentTemplateBytes = null;
+let supabase;
 let currentMapping = null;
+let currentTemplateBytes = null;
+let currentFormId = null; // ID of the form currently being edited
 
-// --- NAVIGATION FUNCTIONS (Called from HTML) ---
+// --- INITIALIZATION ---
+// Fetch env vars from Vercel API, then start app
+fetch('/api/config')
+  .then(res => res.json())
+  .then(config => {
+    if (!config.url || !config.key) throw new Error("Missing API Keys");
+    supabase = createClient(config.url, config.key);
+    checkUser();
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Could not connect to backend. check api/config.js");
+  });
 
-function goHome() {
-  document.getElementById("form-screen").classList.remove("active");
-  document.getElementById("home-screen").classList.add("active");
-  document.getElementById("dynamicForm").innerHTML = ""; // Clear form
-}
 
-async function loadForm(mappingFilename) {
-  try {
-    // Show Loading or just switch screens
-    const [mapping, templateBytes] = await Promise.all([
-      fetch(mappingFilename).then(r => {
-        if (!r.ok) throw new Error(`Could not find ${mappingFilename}`);
-        return r.json();
-      }),
-      // We assume the same template.pdf is used for all. 
-      // If 'Minor' uses a different PDF, you can change this logic.
-      fetch("template.pdf").then(r => r.arrayBuffer()) 
-    ]);
+// --- AUTHENTICATION ---
 
-    currentMapping = mapping;
-    currentTemplateBytes = templateBytes;
-
-    // Switch Screens
-    document.getElementById("home-screen").classList.remove("active");
-    document.getElementById("form-screen").classList.add("active");
-    
-    // Initialize the Form
-    initApp(mapping);
-
-  } catch (err) {
-    alert("Error loading form: " + err.message);
+async function checkUser() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    showScreen("home-screen");
+    loadSavedForms();
+  } else {
+    showScreen("auth-screen");
   }
 }
 
-// --- CORE LOGIC ---
+async function handleLogin() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("auth-msg");
+
+  // Attempt Login
+  let { error } = await supabase.auth.signInWithPassword({ email, password });
+  
+  if (error) {
+    // Attempt Registration if login fails
+    const { error: upError } = await supabase.auth.signUp({ email, password });
+    if (upError) {
+      msg.textContent = error.message;
+      return;
+    }
+    alert("Account created! You are logged in.");
+  }
+  checkUser();
+}
+
+async function handleLogout() {
+  await supabase.auth.signOut();
+  checkUser();
+}
+
+// --- DATABASE OPERATIONS ---
+
+async function loadSavedForms() {
+  const list = document.getElementById("saved-list");
+  list.innerHTML = "Loading...";
+
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { data, error } = await supabase
+    .from('forms')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false });
+
+  if (error) { list.innerHTML = "Error loading data."; return; }
+
+  list.innerHTML = "";
+  if (data.length === 0) list.innerHTML = "<p style='color:#777; text-align:center'>No forms saved.</p>";
+
+  data.forEach(form => {
+    const div = document.createElement("div");
+    div.className = "saved-item";
+    div.innerHTML = `
+      <div class="saved-info">
+        <strong>${form.form_name || "Untitled"}</strong>
+        <span>${new Date(form.updated_at).toLocaleDateString()}</span>
+      </div>
+      <div>
+        <button class="btn-edit" onclick="editForm('${form.id}')">Open</button>
+        <button class="btn-del" onclick="deleteForm('${form.id}')">Del</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+async function saveForm() {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  // Harvest Data
+  const inputs = document.querySelectorAll("#dynamicForm input, #dynamicForm textarea");
+  const formData = {};
+  let nameGuess = "";
+
+  inputs.forEach(inp => {
+    formData[inp.id] = inp.value;
+    if (!nameGuess && inp.id.includes("NAME") && inp.value) nameGuess = inp.value;
+  });
+
+  const payload = {
+    user_id: user.id,
+    form_type: "mapping.json",
+    form_name: nameGuess || "Untitled Form",
+    form_data: formData,
+    updated_at: new Date()
+  };
+
+  let error;
+  if (currentFormId) {
+    const res = await supabase.from('forms').update(payload).eq('id', currentFormId);
+    error = res.error;
+  } else {
+    const res = await supabase.from('forms').insert([payload]).select();
+    if (res.data) currentFormId = res.data[0].id;
+    error = res.error;
+  }
+
+  if (error) alert("Save failed: " + error.message);
+  else {
+    alert("Saved!");
+    loadSavedForms(); // Refresh list in background
+  }
+}
+
+async function deleteForm(id) {
+  if(!confirm("Delete this form?")) return;
+  await supabase.from('forms').delete().eq('id', id);
+  loadSavedForms();
+}
+
+// --- FORM BUILDER & LOGIC ---
+
+async function openNewForm() {
+  currentFormId = null;
+  await loadEnvironment();
+}
+
+async function editForm(id) {
+  const { data } = await supabase.from('forms').select('*').eq('id', id).single();
+  if (!data) return;
+  
+  currentFormId = id;
+  await loadEnvironment();
+
+  // Populate Fields
+  for (const [key, val] of Object.entries(data.form_data)) {
+    const el = document.getElementById(key);
+    if (el) {
+      el.value = val;
+      el.dispatchEvent(new Event('input')); // Trigger pattern updates
+    }
+  }
+}
+
+async function loadEnvironment() {
+  try {
+    const [mapping, templateBytes] = await Promise.all([
+      fetch("mapping.json").then(r => r.json()),
+      fetch("template.pdf").then(r => r.arrayBuffer())
+    ]);
+    currentMapping = mapping;
+    currentTemplateBytes = templateBytes;
+    
+    initFormBuilder(mapping);
+    showScreen("form-screen");
+  } catch(e) { alert("Error loading files: " + e); }
+}
 
 function fieldId(name, group) {
   const g = (group || "General").replace(/[^A-Z0-9]/gi, "_");
@@ -55,181 +190,153 @@ function fieldId(name, group) {
   return `f_${g}__${n}`;
 }
 
-function initApp(mapping) {
-  const uniqueFields = {}; 
+function initFormBuilder(mapping) {
+  const form = document.getElementById("dynamicForm");
+  form.innerHTML = "";
+  
+  const uniqueFields = {};
   const patterns = {};
 
-  // 1. Scan fields
+  // 1. Scan Fields
   for (const pageFields of Object.values(mapping.pages)) {
     for (const f of pageFields) {
       if (f.type === "whiteout" || f.type === "static") continue;
-
       const group = f.group || "General";
       const key = `${group}::${f.name}`;
-
-      if (!uniqueFields[key]) {
-        uniqueFields[key] = {
-          name: f.name,
-          group: group,
-          multiline: !!f.multiline,
-          id: fieldId(f.name, group)
-        };
-      }
       
-      if (f.pattern) {
-        patterns[key] = {
-          pattern: f.pattern,
-          targetId: fieldId(f.name, group),
-          group: group
-        };
+      if (!uniqueFields[key]) {
+        uniqueFields[key] = { ...f, group, id: fieldId(f.name, group) };
       }
+      if (f.pattern) patterns[key] = { pattern: f.pattern, targetId: uniqueFields[key].id, group };
     }
   }
 
-  // 2. Build UI
-  const form = document.getElementById("dynamicForm");
-  form.innerHTML = ""; 
-  const groupNames = mapping.groups || ["General"]; 
+  // 2. Build DOM
+  const groups = mapping.groups || ["General"];
+  for (const gName of groups) {
+    const fields = Object.values(uniqueFields).filter(f => f.group === gName);
+    if (!fields.length) continue;
 
-  for (const groupName of groupNames) {
-    const groupFields = Object.values(uniqueFields).filter(f => f.group === groupName);
-    if (groupFields.length === 0) continue;
-
-    const fieldset = document.createElement("fieldset");
+    const set = document.createElement("fieldset");
     const legend = document.createElement("legend");
-    legend.textContent = groupName;
-    fieldset.appendChild(legend);
+    legend.textContent = gName;
+    set.appendChild(legend);
 
-    for (const field of groupFields) {
-      const label = document.createElement("label");
-      label.textContent = field.name;
-
-      const input = field.multiline
-        ? document.createElement("textarea")
-        : Object.assign(document.createElement("input"), { type: "text" });
-
-      input.id = field.id; 
-
-      input.addEventListener("input", () => {
-        input.value = input.value.toUpperCase();
+    for (const f of fields) {
+      const lbl = document.createElement("label");
+      lbl.textContent = f.name;
+      const inp = f.multiline ? document.createElement("textarea") : document.createElement("input");
+      inp.id = f.id;
+      
+      // Auto-Uppercase & Pattern Trigger
+      inp.addEventListener("input", () => {
+        inp.value = inp.value.toUpperCase();
         updatePatterns(patterns);
       });
 
-      const key = `${field.group}::${field.name}`;
-      if (patterns[key]) {
-        input.readOnly = true;
-        input.classList.add("readonly");
+      // Calculated Field Check
+      if (patterns[`${f.group}::${f.name}`]) {
+        inp.readOnly = true;
+        inp.classList.add("readonly");
       }
-
-      fieldset.appendChild(label);
-      fieldset.appendChild(input);
+      
+      set.appendChild(lbl);
+      set.appendChild(inp);
     }
-    form.appendChild(fieldset);
+    form.appendChild(set);
   }
-
-  // 3. Setup Generate Button
-  const genBtn = document.getElementById("generate");
-  // Remove old event listeners to prevent duplicates
-  const newBtn = genBtn.cloneNode(true);
-  genBtn.parentNode.replaceChild(newBtn, genBtn);
-  
-  newBtn.onclick = () => generatePDF(mapping, patterns);
 }
 
 function updatePatterns(patterns) {
   for (const p of Object.values(patterns)) {
     let val = p.pattern.replace(/\{(.+?)\}/g, (_, varName) => {
-      const sourceId = fieldId(varName, p.group);
-      const el = document.getElementById(sourceId);
+      const el = document.getElementById(fieldId(varName, p.group));
       return el ? el.value : "";
     });
-    const out = document.getElementById(p.targetId);
-    if (out) out.value = val.toUpperCase();
+    const target = document.getElementById(p.targetId);
+    if (target) target.value = val.toUpperCase();
   }
 }
 
-async function generatePDF(mapping, patterns) {
-  try {
-    const pdfDoc = await PDFDocument.load(currentTemplateBytes);
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const pages = pdfDoc.getPages();
+// --- PDF GENERATION (TWO-PASS) ---
 
-    for (const [pageIndexStr, pageFields] of Object.entries(mapping.pages)) {
-      const page = pages[Number(pageIndexStr)];
-      const pageHeight = page.getHeight();
+document.getElementById("generate").onclick = async () => {
+  if (!currentTemplateBytes) return;
+  
+  const pdfDoc = await PDFDocument.load(currentTemplateBytes);
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const pages = pdfDoc.getPages();
 
-      // PASS 1: Whiteout
-      for (const f of pageFields) {
-        if (f.type === "whiteout" && f.rect) {
-          const [x, y, w, h] = f.rect;
-          page.drawRectangle({
-            x: x * SCALE,
-            y: pageHeight - (y + h) * SCALE,
-            width: w * SCALE,
-            height: h * SCALE,
-            color: rgb(1, 1, 1),
-          });
-        }
+  for (const [idxStr, fields] of Object.entries(currentMapping.pages)) {
+    const page = pages[Number(idxStr)];
+    const h = page.getHeight();
+
+    // PASS 1: Whiteout (Background)
+    fields.forEach(f => {
+      if (f.type === "whiteout" && f.rect) {
+        const [x,y,w,rectH] = f.rect;
+        page.drawRectangle({
+          x: x*SCALE, y: h - (y+rectH)*SCALE,
+          width: w*SCALE, height: rectH*SCALE,
+          color: rgb(1,1,1), borderWidth: 0
+        });
       }
+    });
 
-      // PASS 2: Text
-      for (const f of pageFields) {
-        if (f.type === "whiteout" || !f.rect) continue;
+    // PASS 2: Text (Foreground)
+    fields.forEach(f => {
+      if (!f.rect || f.type === "whiteout") return;
+      
+      let val = "";
+      if (f.type === "static") val = f.static_value;
+      else {
+        const el = document.getElementById(fieldId(f.name, f.group));
+        if (el) val = el.value;
+      }
+      if (!val) return;
 
-        let valueToPrint = "";
-        if (f.type === "static") {
-          valueToPrint = f.static_value || "";
-        } else {
-          const el = document.getElementById(fieldId(f.name, f.group || "General"));
-          if (el) valueToPrint = el.value;
+      const [x,y,w,rectH] = f.rect;
+      let fontSize = f.font_size * SCALE;
+      let textX = x * SCALE;
+      let textY;
+
+      if (f.multiline) {
+        textY = h - (y*SCALE) - fontSize;
+        page.drawText(val, {
+          x: textX, y: textY, size: fontSize,
+          maxWidth: w*SCALE, lineHeight: fontSize+2, font: helvetica
+        });
+      } else {
+        // Auto-Scale
+        let width = helvetica.widthOfTextAtSize(val, fontSize);
+        while (width > w*SCALE && fontSize > 6) {
+          fontSize -= 0.5;
+          width = helvetica.widthOfTextAtSize(val, fontSize);
         }
+        // Align
+        if (f.align === "center") textX += (w*SCALE - width)/2;
+        else if (f.align === "right") textX += (w*SCALE - width);
         
-        if (!valueToPrint) continue;
-
-        const [x, y, w, h] = f.rect;
-        const boxWidth = w * SCALE;
-        let fontSize = f.font_size * SCALE;
-        let textX = x * SCALE;
-        let textY;
-
-        if (f.multiline) {
-           textY = pageHeight - (y * SCALE) - fontSize;
-           page.drawText(valueToPrint, {
-             x: textX, y: textY, size: fontSize,
-             maxWidth: boxWidth, lineHeight: fontSize + 2, font: helveticaFont,
-           });
-        } else {
-           // Auto-Scale
-           let textWidth = helveticaFont.widthOfTextAtSize(valueToPrint, fontSize);
-           while (textWidth > boxWidth && fontSize > 6) {
-             fontSize -= 0.5;
-             textWidth = helveticaFont.widthOfTextAtSize(valueToPrint, fontSize);
-           }
-           // Align
-           if (f.align === "center") textX += (boxWidth - textWidth) / 2;
-           else if (f.align === "right") textX += (boxWidth - textWidth);
-           
-           textY = pageHeight - ((y + h) * SCALE) + 4;
-
-           page.drawText(valueToPrint, {
-             x: textX, y: textY, size: fontSize, font: helveticaFont, color: rgb(0, 0, 0)
-           });
-        }
+        textY = h - ((y+rectH)*SCALE) + 4;
+        page.drawText(val, { x: textX, y: textY, size: fontSize, font: helvetica });
       }
-    }
-
-    const bytes = await pdfDoc.save();
-    download(bytes, "filled_form.pdf");
-  } catch (err) {
-    alert("Generation failed: " + err.message);
+    });
   }
-}
 
-function download(bytes, filename) {
+  const bytes = await pdfDoc.save();
   const blob = new Blob([bytes], { type: "application/pdf" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = filename;
+  a.download = "filled_form.pdf";
   a.click();
-  URL.revokeObjectURL(a.href);
+};
+
+// --- UI UTILS ---
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function goHome() {
+  showScreen("home-screen");
+  loadSavedForms();
 }
