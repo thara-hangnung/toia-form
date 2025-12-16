@@ -2,36 +2,93 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PDF Form Filler</title>
+  <title>Post Office Form Filler</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#1976d2" />
   <link rel="manifest" href="manifest.json" />
 
   <style>
-    body { font-family: Arial, sans-serif; padding: 16px; max-width: 900px; margin: auto; }
-    label { display: block; margin-top: 12px; font-weight: bold; }
-    input, textarea { width: 100%; padding: 8px; font-size: 15px; box-sizing: border-box; }
-    textarea { resize: vertical; min-height: 70px; }
-    .readonly { background: #eee; }
-    button { margin-top: 24px; padding: 12px 18px; font-size: 16px; cursor: pointer; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 16px; max-width: 900px; margin: auto; background-color: #f5f5f5; }
+    
+    /* Screen Visibility */
+    .screen { display: none; }
+    .active { display: block; }
+
+    /* Home Screen Styles */
+    #home-screen { text-align: center; padding-top: 40px; }
+    .menu-card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: auto;
+    }
+    .menu-btn {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      font-size: 18px;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .menu-btn:hover { background-color: #115293; }
+    .menu-btn.minor { background-color: #00796b; } /* Different color for Minor */
+
+    /* Form Styles */
+    h2 { margin-bottom: 20px; color: #333; }
+    label { display: block; margin-top: 12px; font-weight: bold; color: #555; }
+    input, textarea { width: 100%; padding: 10px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    textarea { resize: vertical; min-height: 80px; }
+    .readonly { background: #e9ecef; color: #495057; }
+    fieldset { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    legend { background: #1976d2; color: white; padding: 5px 10px; border-radius: 4px; font-size: 14px; }
+    
+    /* Action Buttons */
+    .action-bar { margin-top: 24px; display: flex; gap: 10px; }
+    .btn-gen { flex: 2; padding: 14px; font-size: 18px; background: #2e7d32; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .btn-back { flex: 1; padding: 14px; font-size: 18px; background: #757575; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    
   </style>
 </head>
 <body>
 
-<h2>Account Opening – Data Entry</h2>
+  <div id="home-screen" class="screen active">
+    <div class="menu-card">
+      <h2>Select Form Type</h2>
+      <p style="color:#666; margin-bottom:20px;">Choose the account configuration:</p>
+      
+      <button class="menu-btn" onclick="loadForm('mapping_1.json')">1 Applicant</button>
+      <button class="menu-btn" onclick="loadForm('mapping_2.json')">2 Applicants</button>
+      <button class="menu-btn" onclick="loadForm('mapping_3.json')">3 Applicants</button>
+      <button class="menu-btn minor" onclick="loadForm('mapping_minor.json')">Minor Account</button>
+    </div>
+  </div>
 
-<form id="dynamicForm"></form>
+  <div id="form-screen" class="screen">
+    <h2 id="form-title">Data Entry</h2>
+    
+    <form id="dynamicForm"></form>
 
-<button id="generate" type="button">Generate PDF</button>
+    <div class="action-bar">
+      <button class="btn-back" onclick="goHome()">Back</button>
+      <button id="generate" class="btn-gen" type="button">Generate PDF</button>
+    </div>
+  </div>
 
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="app.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="app.js"></script>
 
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
-  }
-</script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
 
 </body>
 </html>
