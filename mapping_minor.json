@@ -1,0 +1,702 @@
+{
+  "pages": {
+    "0": [
+      {
+        "name": "OFFICE NAME",
+        "rect": [
+          69,
+          445,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "OFFICE DETAILS"
+      },
+      {
+        "name": "OFFICE ADDRESS",
+        "rect": [
+          68,
+          483,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "OFFICE DETAILS"
+      },
+      {
+        "name": "SCHEME",
+        "rect": [
+          70,
+          656,
+          141,
+          29
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "General"
+      },
+      {
+        "name": "AMOUNT",
+        "rect": [
+          375,
+          1147,
+          126,
+          27
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "General"
+      },
+      {
+        "name": "AMOUNT IN WORDS",
+        "rect": [
+          573,
+          1143,
+          750,
+          32
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "General"
+      },
+      {
+        "name": "NAME",
+        "rect": [
+          209,
+          623,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "SCHEME",
+        "rect": [
+          651,
+          41,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "General"
+      },
+      {
+        "name": "NAME",
+        "rect": [
+          548,
+          1262,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "CO",
+        "rect": [
+          548,
+          1297,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "GENDER",
+        "rect": [
+          548,
+          1330,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "DOB",
+        "rect": [
+          547,
+          1365,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "AADHAAR",
+        "rect": [
+          547,
+          1423,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "PAN",
+        "rect": [
+          547,
+          1457,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "MOBILE NO",
+        "rect": [
+          549,
+          1716,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "ID PROOF",
+        "rect": [
+          549,
+          1803,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1",
+        "type": "static",
+        "static_value": "PAN"
+      },
+      {
+        "name": "ADDRESS PROOF",
+        "rect": [
+          549,
+          1907,
+          300,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1",
+        "type": "static",
+        "static_value": "AADHAAR"
+      },
+      {
+        "name": "FULL ADDRESS",
+        "rect": [
+          549,
+          1530,
+          307,
+          87
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": true,
+        "pattern": "{ROAD}, {LOCALITY}, {CITY}, {STATE} - {PINCODE}",
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "FULL ADDRESS",
+        "rect": [
+          549,
+          1626,
+          304,
+          81
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": true,
+        "pattern": "{ROAD}, {LOCALITY}, {CITY}, {STATE} - {PINCODE}",
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "MINOR NAME",
+        "rect": [
+          116,
+          1026,
+          473,
+          33
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "MINOR"
+      },
+      {
+        "name": "MINOR DOB",
+        "rect": [
+          609,
+          1028,
+          387,
+          29
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "MINOR"
+      },
+      {
+        "name": "MINOR GENDER",
+        "rect": [
+          1012,
+          1027,
+          113,
+          29
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "MINOR"
+      },
+      {
+        "name": "RELATIONSHIP",
+        "rect": [
+          1148,
+          1027,
+          272,
+          29
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "MINOR"
+      },
+      {
+        "name": "NATURAL / LEGAL",
+        "rect": [
+          1412,
+          1027,
+          156,
+          30
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "MINOR"
+      },
+      {
+        "name": "AGE PROOF",
+        "rect": [
+          683,
+          1078,
+          647,
+          45
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "MINOR",
+        "pattern": "AADHAAR : {AADHAAR ID}"
+      },
+      {
+        "name": "AADHAAR ID",
+        "rect": null,
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "MINOR"
+      }
+    ],
+    "1": [
+      {
+        "name": "NAME",
+        "rect": [
+          129,
+          1099,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "NOMINEE NAME",
+        "rect": [
+          183,
+          1312,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "center",
+        "multiline": false,
+        "group": "NOMINATION"
+      },
+      {
+        "name": "NOMINEE RELATIONSHIP",
+        "rect": [
+          184,
+          1346,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "center",
+        "multiline": false,
+        "group": "NOMINATION"
+      },
+      {
+        "name": "NOMINEE ADDRESS",
+        "rect": [
+          490,
+          1315,
+          454,
+          66
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": true,
+        "group": "NOMINATION",
+        "pattern": "{ROAD}, {LOCALITY}, {CITY}, {STATE} - {PIN CODE}"
+      },
+      {
+        "name": "SHARE IN %",
+        "rect": [
+          1173,
+          1312,
+          161,
+          32
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "NOMINATION",
+        "type": "static",
+        "static_value": "100%"
+      },
+      {
+        "name": "OWNER OR TRUSTEE",
+        "rect": [
+          1344,
+          1313,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "NOMINATION",
+        "type": "static",
+        "static_value": "OWNER"
+      },
+      {
+        "name": "LOCALITY",
+        "rect": null,
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "NOMINATION"
+      },
+      {
+        "name": "ROAD",
+        "rect": null,
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "NOMINATION"
+      },
+      {
+        "name": "CITY",
+        "rect": null,
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "NOMINATION"
+      },
+      {
+        "name": "STATE",
+        "rect": null,
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "NOMINATION"
+      },
+      {
+        "name": "PIN CODE",
+        "rect": null,
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "NOMINATION"
+      },
+      {
+        "name": "Whiteout_11",
+        "rect": [
+          484,
+          1313,
+          467,
+          72
+        ],
+        "type": "whiteout",
+        "font": "DejaVuSans",
+        "font_size": 12,
+        "align": "left",
+        "group": "General"
+      },
+      {
+        "name": "Whiteout_12",
+        "rect": [
+          183,
+          1313,
+          298,
+          76
+        ],
+        "type": "whiteout",
+        "font": "DejaVuSans",
+        "font_size": 12,
+        "align": "left",
+        "group": "General"
+      }
+    ],
+    "2": [
+      {
+        "name": "NAME",
+        "rect": [
+          310,
+          344,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "NAME",
+        "rect": [
+          532,
+          1106,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "AADHAAR",
+        "rect": [
+          532,
+          1339,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "PAN",
+        "rect": [
+          1133,
+          1338,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "LOCALITY",
+        "rect": [
+          1133,
+          1144,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "ROAD",
+        "rect": [
+          532,
+          1183,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "CITY",
+        "rect": [
+          1133,
+          1222,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "STATE",
+        "rect": [
+          1133,
+          1263,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "PINCODE",
+        "rect": [
+          532,
+          1261,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "MOBILE NO",
+        "rect": [
+          532,
+          1298,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1"
+      },
+      {
+        "name": "KYC IDENTITY",
+        "rect": [
+          833,
+          1452,
+          300,
+          35
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1",
+        "pattern": "{ID PROOF} - {PAN}"
+      },
+      {
+        "name": "KYC ADDRESS",
+        "rect": [
+          833,
+          1489,
+          416,
+          38
+        ],
+        "font": "DejaVuSans",
+        "font_size": 20,
+        "align": "left",
+        "multiline": false,
+        "group": "APPLICANT 1",
+        "pattern": "{ADDRESS PROOF} - {AADHAAR}"
+      }
+    ]
+  },
+  "groups": [
+    "General",
+    "OFFICE DETAILS",
+    "APPLICANT 1",
+    "APPLICANT 2",
+    "NOMINATION",
+    "MINOR"
+  ]
+}
