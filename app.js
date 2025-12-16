@@ -1,5 +1,5 @@
 /* ============================================================
-   FULL APP: AUTH + DB + DYNAMIC TEMPLATES
+   FULL APP: AUTH + DB + DYNAMIC TEMPLATES + MANUAL NAMING
    ============================================================ */
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
@@ -13,7 +13,8 @@ let supabase;
 let currentMapping = null;
 let currentTemplateBytes = null;
 let currentFormId = null; 
-let currentFormType = ""; // FIX: Store which JSON file we are using
+let currentFormType = ""; 
+let currentFormName = ""; // New: Store the manual name
 
 // --- INITIALIZATION ---
 fetch('/api/config')
@@ -82,7 +83,6 @@ async function loadSavedForms() {
     const div = document.createElement("div");
     div.className = "saved-item";
     
-    // Clean up filename for display (e.g. "mapping_1.json" -> "mapping_1")
     const typeLabel = (form.form_type || "").replace(".json", "").replace("mapping_", "Type: ");
     
     div.innerHTML = `
@@ -102,20 +102,30 @@ async function loadSavedForms() {
 async function saveForm() {
   const { data: { user } } = await supabase.auth.getUser();
   
-  // Harvest Data
+  // 1. Harvest Data
   const inputs = document.querySelectorAll("#dynamicForm input, #dynamicForm textarea");
   const formData = {};
   let nameGuess = "";
 
   inputs.forEach(inp => {
     formData[inp.id] = inp.value;
+    // Try to guess a name if we don't have one
     if (!nameGuess && inp.id.includes("NAME") && inp.value) nameGuess = inp.value;
   });
 
+  // 2. Manual Naming Logic
+  // Default to existing name, OR guessed name, OR "Untitled"
+  const defaultName = currentFormName || nameGuess || "Untitled Form";
+  const manualName = prompt("Enter a name to save this form as:", defaultName);
+  
+  if (!manualName) return; // User cancelled
+  
+  currentFormName = manualName; // Update global state
+
   const payload = {
     user_id: user.id,
-    form_type: currentFormType, // FIX: Save the specific file name used
-    form_name: nameGuess || "Untitled Form",
+    form_type: currentFormType,
+    form_name: currentFormName,
     form_data: formData,
     updated_at: new Date()
   };
@@ -132,7 +142,7 @@ async function saveForm() {
 
   if (error) alert("Save failed: " + error.message);
   else {
-    alert("Saved!");
+    alert("Saved as '" + currentFormName + "'");
     loadSavedForms(); 
   }
 }
@@ -145,19 +155,18 @@ async function deleteForm(id) {
 
 // --- FORM BUILDER & LOGIC ---
 
-// FIX: Accept filename parameter
 async function openNewForm(filename) {
   currentFormId = null;
+  currentFormName = ""; // Reset name for new form
   await loadEnvironment(filename);
 }
 
-// FIX: Read filename from database
 async function editForm(id) {
   const { data } = await supabase.from('forms').select('*').eq('id', id).single();
   if (!data) return;
   
   currentFormId = id;
-  // Load the specific JSON file this form uses
+  currentFormName = data.form_name; // Load existing name
   await loadEnvironment(data.form_type || "mapping_1.json");
 
   // Populate Fields
@@ -170,9 +179,8 @@ async function editForm(id) {
   }
 }
 
-// FIX: Fetch the specific JSON file passed in argument
 async function loadEnvironment(filename) {
-  currentFormType = filename; // Store for saving later
+  currentFormType = filename; 
 
   try {
     const [mapping, templateBytes] = await Promise.all([
@@ -266,6 +274,14 @@ function updatePatterns(patterns) {
 document.getElementById("generate").onclick = async () => {
   if (!currentTemplateBytes) return;
   
+  // 1. Manual Filename Prompt
+  let defaultFileName = (currentFormName || "filled_form");
+  // Remove extension if user typed it in the form name to avoid double .pdf
+  defaultFileName = defaultFileName.replace(".pdf", "") + ".pdf";
+
+  const pdfName = prompt("Enter filename for the PDF:", defaultFileName);
+  if (!pdfName) return; // User cancelled
+
   const pdfDoc = await PDFDocument.load(currentTemplateBytes);
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const pages = pdfDoc.getPages();
@@ -328,7 +344,7 @@ document.getElementById("generate").onclick = async () => {
   const blob = new Blob([bytes], { type: "application/pdf" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "filled_form.pdf";
+  a.download = pdfName.endsWith(".pdf") ? pdfName : pdfName + ".pdf";
   a.click();
 };
 
