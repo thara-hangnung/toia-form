@@ -2,36 +2,90 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PDF Form Filler</title>
+  <title>Post Office Form App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#1976d2" />
-  <link rel="manifest" href="manifest.json" />
-
   <style>
-    body { font-family: Arial, sans-serif; padding: 16px; max-width: 900px; margin: auto; }
-    label { display: block; margin-top: 12px; font-weight: bold; }
-    input, textarea { width: 100%; padding: 8px; font-size: 15px; box-sizing: border-box; }
-    textarea { resize: vertical; min-height: 70px; }
-    .readonly { background: #eee; }
-    button { margin-top: 24px; padding: 12px 18px; font-size: 16px; cursor: pointer; }
+    body { font-family: 'Segoe UI', sans-serif; padding: 16px; max-width: 900px; margin: auto; background: #f5f5f5; }
+    .screen { display: none; }
+    .active { display: block; }
+    
+    /* Login Styles */
+    .auth-card { background: white; padding: 30px; max-width: 350px; margin: 50px auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+    .auth-input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    .btn-primary { width: 100%; padding: 12px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    .btn-primary:hover { background: #115293; }
+
+    /* Dashboard Styles */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    
+    /* FIX: Grid for Template Selection */
+    .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+    .template-btn { padding: 15px; background: white; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: 600; color: #444; transition: 0.2s; }
+    .template-btn:hover { border-color: #1976d2; color: #1976d2; background: #f0f7ff; }
+
+    .saved-item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .saved-info strong { display: block; color: #333; }
+    .saved-info span { font-size: 13px; color: #666; }
+    .btn-edit { background: #e3f2fd; color: #1976d2; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+    .btn-del { background: #ffebee; color: #c62828; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-left: 5px;}
+
+    /* Form Styles */
+    fieldset { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    legend { background: #1976d2; color: white; padding: 4px 10px; border-radius: 4px; font-size: 13px; }
+    label { display: block; margin-top: 10px; font-weight: 600; font-size: 14px; color: #444; }
+    input, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .readonly { background: #f0f0f0; color: #555; }
+    
+    .toolbar { display: flex; gap: 10px; margin-top: 20px; }
+    .toolbar button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
   </style>
 </head>
 <body>
 
-<h2>Account Opening – Data Entry</h2>
+  <div id="auth-screen" class="screen active">
+    <div class="auth-card">
+      <h2>Welcome</h2>
+      <p>Sign in to manage your forms</p>
+      <input type="email" id="email" class="auth-input" placeholder="Email" />
+      <input type="password" id="password" class="auth-input" placeholder="Password" />
+      <button class="btn-primary" onclick="handleLogin()">Sign In / Sign Up</button>
+      <p id="auth-msg" style="color:red; font-size:13px; margin-top:10px;"></p>
+    </div>
+  </div>
 
-<form id="dynamicForm"></form>
+  <div id="home-screen" class="screen">
+    <div class="header">
+      <h3>Dashboard</h3>
+      <button onclick="handleLogout()" style="background:none; border:none; color:#d32f2f; cursor:pointer;">Logout</button>
+    </div>
+    
+    <h4>Create New</h4>
+    <div class="template-grid">
+      <button class="template-btn" onclick="openNewForm('mapping_1.json')">1 Applicant</button>
+      <button class="template-btn" onclick="openNewForm('mapping_2.json')">2 Applicants</button>
+      <button class="template-btn" onclick="openNewForm('mapping_3.json')">3 Applicants</button>
+      <button class="template-btn" onclick="openNewForm('mapping_minor.json')">Minor Account</button>
+    </div>
 
-<button id="generate" type="button">Generate PDF</button>
+    <h4>Saved Forms</h4>
+    <div id="saved-list">Loading...</div>
+  </div>
 
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="app.js"></script>
+  <div id="form-screen" class="screen">
+    <button onclick="goHome()" style="background:#eee; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; margin-bottom:10px;">← Back</button>
+    
+    <form id="dynamicForm"></form>
 
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
-  }
-</script>
+    <div class="toolbar">
+      <button onclick="saveForm()" style="background:#0288d1;">💾 Save Data</button>
+      <button id="generate" style="background:#2e7d32;">🖨 Generate PDF</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="app.js"></script>
 
 </body>
 </html>
