@@ -39,7 +39,7 @@
         ],
         "font": "DejaVuSans",
         "font_size": 20,
-        "align": "left",
+        "align": "center",
         "multiline": false,
         "group": "General"
       },
