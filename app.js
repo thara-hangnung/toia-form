@@ -1,5 +1,5 @@
 /* ============================================================
-   FULL APP: AUTH + DB + TWO-PASS PDF GENERATION
+   FULL APP: AUTH + DB + DYNAMIC TEMPLATES
    ============================================================ */
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
@@ -12,10 +12,10 @@ const SCALE = PDF_DPI / SOURCE_DPI;
 let supabase;
 let currentMapping = null;
 let currentTemplateBytes = null;
-let currentFormId = null; // ID of the form currently being edited
+let currentFormId = null; 
+let currentFormType = ""; // FIX: Store which JSON file we are using
 
 // --- INITIALIZATION ---
-// Fetch env vars from Vercel API, then start app
 fetch('/api/config')
   .then(res => res.json())
   .then(config => {
@@ -28,9 +28,7 @@ fetch('/api/config')
     alert("Could not connect to backend. check api/config.js");
   });
 
-
 // --- AUTHENTICATION ---
-
 async function checkUser() {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
@@ -46,16 +44,11 @@ async function handleLogin() {
   const password = document.getElementById("password").value;
   const msg = document.getElementById("auth-msg");
 
-  // Attempt Login
   let { error } = await supabase.auth.signInWithPassword({ email, password });
   
   if (error) {
-    // Attempt Registration if login fails
     const { error: upError } = await supabase.auth.signUp({ email, password });
-    if (upError) {
-      msg.textContent = error.message;
-      return;
-    }
+    if (upError) { msg.textContent = error.message; return; }
     alert("Account created! You are logged in.");
   }
   checkUser();
@@ -88,10 +81,14 @@ async function loadSavedForms() {
   data.forEach(form => {
     const div = document.createElement("div");
     div.className = "saved-item";
+    
+    // Clean up filename for display (e.g. "mapping_1.json" -> "mapping_1")
+    const typeLabel = (form.form_type || "").replace(".json", "").replace("mapping_", "Type: ");
+    
     div.innerHTML = `
       <div class="saved-info">
         <strong>${form.form_name || "Untitled"}</strong>
-        <span>${new Date(form.updated_at).toLocaleDateString()}</span>
+        <span>${typeLabel} • ${new Date(form.updated_at).toLocaleDateString()}</span>
       </div>
       <div>
         <button class="btn-edit" onclick="editForm('${form.id}')">Open</button>
@@ -117,7 +114,7 @@ async function saveForm() {
 
   const payload = {
     user_id: user.id,
-    form_type: "mapping.json",
+    form_type: currentFormType, // FIX: Save the specific file name used
     form_name: nameGuess || "Untitled Form",
     form_data: formData,
     updated_at: new Date()
@@ -136,7 +133,7 @@ async function saveForm() {
   if (error) alert("Save failed: " + error.message);
   else {
     alert("Saved!");
-    loadSavedForms(); // Refresh list in background
+    loadSavedForms(); 
   }
 }
 
@@ -148,32 +145,41 @@ async function deleteForm(id) {
 
 // --- FORM BUILDER & LOGIC ---
 
-async function openNewForm() {
+// FIX: Accept filename parameter
+async function openNewForm(filename) {
   currentFormId = null;
-  await loadEnvironment();
+  await loadEnvironment(filename);
 }
 
+// FIX: Read filename from database
 async function editForm(id) {
   const { data } = await supabase.from('forms').select('*').eq('id', id).single();
   if (!data) return;
   
   currentFormId = id;
-  await loadEnvironment();
+  // Load the specific JSON file this form uses
+  await loadEnvironment(data.form_type || "mapping_1.json");
 
   // Populate Fields
   for (const [key, val] of Object.entries(data.form_data)) {
     const el = document.getElementById(key);
     if (el) {
       el.value = val;
-      el.dispatchEvent(new Event('input')); // Trigger pattern updates
+      el.dispatchEvent(new Event('input')); 
     }
   }
 }
 
-async function loadEnvironment() {
+// FIX: Fetch the specific JSON file passed in argument
+async function loadEnvironment(filename) {
+  currentFormType = filename; // Store for saving later
+
   try {
     const [mapping, templateBytes] = await Promise.all([
-      fetch("mapping.json").then(r => r.json()),
+      fetch(filename).then(r => {
+        if (!r.ok) throw new Error(`Could not find ${filename}`);
+        return r.json();
+      }),
       fetch("template.pdf").then(r => r.arrayBuffer())
     ]);
     currentMapping = mapping;
@@ -181,7 +187,9 @@ async function loadEnvironment() {
     
     initFormBuilder(mapping);
     showScreen("form-screen");
-  } catch(e) { alert("Error loading files: " + e); }
+  } catch(e) { 
+    alert("Error loading files: " + e.message + "\nMake sure " + filename + " is uploaded."); 
+  }
 }
 
 function fieldId(name, group) {
@@ -197,7 +205,6 @@ function initFormBuilder(mapping) {
   const uniqueFields = {};
   const patterns = {};
 
-  // 1. Scan Fields
   for (const pageFields of Object.values(mapping.pages)) {
     for (const f of pageFields) {
       if (f.type === "whiteout" || f.type === "static") continue;
@@ -211,7 +218,6 @@ function initFormBuilder(mapping) {
     }
   }
 
-  // 2. Build DOM
   const groups = mapping.groups || ["General"];
   for (const gName of groups) {
     const fields = Object.values(uniqueFields).filter(f => f.group === gName);
@@ -228,13 +234,11 @@ function initFormBuilder(mapping) {
       const inp = f.multiline ? document.createElement("textarea") : document.createElement("input");
       inp.id = f.id;
       
-      // Auto-Uppercase & Pattern Trigger
       inp.addEventListener("input", () => {
         inp.value = inp.value.toUpperCase();
         updatePatterns(patterns);
       });
 
-      // Calculated Field Check
       if (patterns[`${f.group}::${f.name}`]) {
         inp.readOnly = true;
         inp.classList.add("readonly");
@@ -258,8 +262,7 @@ function updatePatterns(patterns) {
   }
 }
 
-// --- PDF GENERATION (TWO-PASS) ---
-
+// --- PDF GENERATION ---
 document.getElementById("generate").onclick = async () => {
   if (!currentTemplateBytes) return;
   
@@ -271,7 +274,7 @@ document.getElementById("generate").onclick = async () => {
     const page = pages[Number(idxStr)];
     const h = page.getHeight();
 
-    // PASS 1: Whiteout (Background)
+    // PASS 1: Whiteout
     fields.forEach(f => {
       if (f.type === "whiteout" && f.rect) {
         const [x,y,w,rectH] = f.rect;
@@ -283,7 +286,7 @@ document.getElementById("generate").onclick = async () => {
       }
     });
 
-    // PASS 2: Text (Foreground)
+    // PASS 2: Text
     fields.forEach(f => {
       if (!f.rect || f.type === "whiteout") return;
       
@@ -307,13 +310,11 @@ document.getElementById("generate").onclick = async () => {
           maxWidth: w*SCALE, lineHeight: fontSize+2, font: helvetica
         });
       } else {
-        // Auto-Scale
         let width = helvetica.widthOfTextAtSize(val, fontSize);
         while (width > w*SCALE && fontSize > 6) {
           fontSize -= 0.5;
           width = helvetica.widthOfTextAtSize(val, fontSize);
         }
-        // Align
         if (f.align === "center") textX += (w*SCALE - width)/2;
         else if (f.align === "right") textX += (w*SCALE - width);
         
@@ -331,7 +332,6 @@ document.getElementById("generate").onclick = async () => {
   a.click();
 };
 
-// --- UI UTILS ---
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
