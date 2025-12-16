@@ -1,5 +1,5 @@
 /* ============================================================
-   FIXED VERSION: SCOPED FIELDS (SEPARATE ADDRESSES)
+   FINAL VERSION: TWO-PASS DRAWING (WHITEOUT BEHIND TEXT)
    ============================================================ */
 
 const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
@@ -8,7 +8,7 @@ const SOURCE_DPI = 200;
 const PDF_DPI = 72;
 const SCALE = PDF_DPI / SOURCE_DPI;
 
-// --- FIX 1: ID now includes the Group to prevent collisions ---
+// ID Scoping: Group + Name
 function fieldId(name, group) {
   const g = (group || "General").replace(/[^A-Z0-9]/gi, "_");
   const n = name.replace(/[^A-Z0-9]/gi, "_");
@@ -27,14 +27,12 @@ function initApp([mapping, templatePdfBytes]) {
   const uniqueFields = {}; 
   const patterns = {};
 
-  // 1. Scan fields and identify them by (Group + Name)
+  // 1. Scan fields
   for (const pageFields of Object.values(mapping.pages)) {
     for (const f of pageFields) {
       if (f.type === "whiteout" || f.type === "static") continue;
 
       const group = f.group || "General";
-      
-      // --- FIX 2: Key by Group + Name so "Nominee City" != "Applicant City" ---
       const key = `${group}::${f.name}`;
 
       if (!uniqueFields[key]) {
@@ -42,7 +40,7 @@ function initApp([mapping, templatePdfBytes]) {
           name: f.name,
           group: group,
           multiline: !!f.multiline,
-          id: fieldId(f.name, group) // Store the calculated ID
+          id: fieldId(f.name, group)
         };
       }
       
@@ -56,13 +54,12 @@ function initApp([mapping, templatePdfBytes]) {
     }
   }
 
-  // 2. Build UI Group by Group
+  // 2. Build UI
   const form = document.getElementById("dynamicForm");
   form.innerHTML = ""; 
   const groupNames = mapping.groups || ["General"]; 
 
   for (const groupName of groupNames) {
-    // Find all fields belonging to this group
     const groupFields = Object.values(uniqueFields).filter(f => f.group === groupName);
     
     if (groupFields.length === 0) continue;
@@ -86,15 +83,13 @@ function initApp([mapping, templatePdfBytes]) {
         ? document.createElement("textarea")
         : Object.assign(document.createElement("input"), { type: "text" });
 
-      input.id = field.id; // Use the scoped ID
+      input.id = field.id; 
 
       input.addEventListener("input", () => {
         input.value = input.value.toUpperCase();
         updatePatterns();
       });
 
-      // If it's a calculated field, make it read-only
-      // We check if THIS specific field (group+name) has a pattern
       const key = `${field.group}::${field.name}`;
       if (patterns[key]) {
         input.readOnly = true;
@@ -108,10 +103,9 @@ function initApp([mapping, templatePdfBytes]) {
     form.appendChild(fieldset);
   }
 
-  /* -------- Pattern Engine (Scoped) -------- */
+  /* -------- Pattern Engine -------- */
   function updatePatterns() {
     for (const p of Object.values(patterns)) {
-      // Replace {VAR} with the value of VAR *inside the same group*
       let val = p.pattern.replace(/\{(.+?)\}/g, (_, varName) => {
         const sourceId = fieldId(varName, p.group);
         const el = document.getElementById(sourceId);
@@ -134,23 +128,29 @@ function initApp([mapping, templatePdfBytes]) {
         const page = pages[Number(pageIndexStr)];
         const pageHeight = page.getHeight();
 
+        // --- PASS 1: Draw Whiteouts First (Background Layer) ---
         for (const f of pageFields) {
-          
-          if (f.type === "whiteout") {
+          if (f.type === "whiteout" && f.rect) {
             const [x, y, w, h] = f.rect;
             page.drawRectangle({
               x: x * SCALE,
               y: pageHeight - (y + h) * SCALE,
               width: w * SCALE,
               height: h * SCALE,
-              color: rgb(1, 1, 1), 
+              color: rgb(1, 1, 1), // White fill
+              borderColor: undefined,
+              borderWidth: 0,
             });
-            continue; 
           }
+        }
 
+        // --- PASS 2: Draw Text (Foreground Layer) ---
+        for (const f of pageFields) {
+          // Skip whiteouts in this pass
+          if (f.type === "whiteout") continue; 
           if (!f.rect) continue; 
 
-          // --- FIX 3: Retrieve value using the scoped ID ---
+          // Retrieve Value
           let valueToPrint = "";
           if (f.type === "static") {
             valueToPrint = f.static_value || "";
@@ -161,10 +161,9 @@ function initApp([mapping, templatePdfBytes]) {
           
           if (!valueToPrint) continue;
 
-          // --- Draw Text (Auto-Scale + Align) ---
+          // Draw Text
           const [x, y, w, h] = f.rect;
           const boxWidth = w * SCALE;
-          const boxHeight = h * SCALE;
           
           let fontSize = f.font_size * SCALE;
           let textX = x * SCALE;
