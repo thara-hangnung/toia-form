@@ -53,22 +53,22 @@ export function renderForm(mapping, patterns) {
       const inp = f.multiline ? document.createElement("textarea") : document.createElement("input");
       inp.id = f.id;
       
-      // === IMPROVEMENT: INPUT MASKS ===
+      // INPUT MASKS
       inp.addEventListener("input", (e) => {
         let val = e.target.value.toUpperCase(); 
         
-        // Aadhaar: 0000 0000 0000
+        // Aadhaar (12 digits, spaced 4-4-4)
         if (f.name.includes("AADHAAR")) {
           val = val.replace(/\D/g, '').substring(0, 12);
           val = val.replace(/(\d{4})(?=\d)/g, '$1 '); 
         } 
-        // Date: DD/MM/YYYY
+        // Date (DD/MM/YYYY)
         else if (f.name.includes("DOB") || f.name.includes("DATE")) {
           val = val.replace(/\D/g, '').substring(0, 8); 
           if (val.length > 4) val = val.slice(0,2) + '/' + val.slice(2,4) + '/' + val.slice(4);
           else if (val.length > 2) val = val.slice(0,2) + '/' + val.slice(2);
         }
-        // Mobile: 10 Digits
+        // Mobile (10 digits)
         else if (f.name.includes("MOBILE") || f.name.includes("PHONE")) {
           val = val.replace(/\D/g, '').substring(0, 10);
         }
@@ -76,7 +76,6 @@ export function renderForm(mapping, patterns) {
         e.target.value = val;
         updatePatterns(patterns);
       });
-      // ================================
 
       if (patterns[`${f.group}::${f.name}`]) {
         inp.readOnly = true;
@@ -99,6 +98,37 @@ function updatePatterns(patterns) {
     const target = document.getElementById(p.targetId);
     if (target) target.value = val.toUpperCase();
   }
+}
+
+export function validateForm() {
+  const inputs = document.querySelectorAll("#dynamicForm input");
+  let isValid = true;
+  let firstError = null;
+
+  inputs.forEach(inp => {
+    inp.style.borderColor = "#ccc"; // Reset
+    
+    // Check Aadhaar Length
+    if (inp.id.includes("AADHAAR") && inp.value.length > 0 && inp.value.length < 14) {
+      isValid = false;
+      inp.style.borderColor = "red";
+      if (!firstError) firstError = inp;
+    }
+    // Check Mobile Length
+    if ((inp.id.includes("MOBILE") || inp.id.includes("PHONE")) && inp.value.length > 0 && inp.value.length < 10) {
+      isValid = false;
+      inp.style.borderColor = "red";
+      if (!firstError) firstError = inp;
+    }
+  });
+
+  if (firstError) {
+    firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+    firstError.focus();
+    showToast("Please fix the highlighted fields.");
+  }
+  
+  return isValid;
 }
 
 export function getFormData() {

@@ -61,10 +61,13 @@ document.getElementById("search-input").onkeyup = (e) => {
   });
 };
 
-// Editor
+// Editor Actions
 document.getElementById("btn-back").onclick = loadDashboard;
 
 document.getElementById("btn-save").onclick = async () => {
+  // 1. Validate First
+  if (!UI.validateForm()) return;
+
   const { data, nameGuess } = UI.getFormData();
   const user = Auth.getUser();
   if (!user) return;
@@ -97,14 +100,35 @@ document.getElementById("btn-save").onclick = async () => {
   if (error) UI.showToast("Error: " + error.message);
   else {
     UI.showToast("Saved Successfully!");
-    clearDraft(currentFormType); // Clear local draft on successful DB save
+    clearDraft(currentFormType); // Clear draft after save
     loadSavedList(); 
   }
+};
+
+document.getElementById("btn-preview").onclick = async () => {
+  if (!currentTemplateBytes || !currentFontBytes) return;
+  
+  const bytes = await PDF.generatePDF(
+    currentMapping, 
+    currentTemplateBytes, 
+    currentFontBytes,
+    (id) => {
+      const el = document.getElementById(id);
+      return el ? el.value : "";
+    }
+  );
+
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank");
 };
 
 document.getElementById("btn-print").onclick = async () => {
   if (!currentTemplateBytes || !currentFontBytes) return;
   
+  // Validate before print? Optional, but good practice.
+  if (!UI.validateForm()) return;
+
   let defaultName = (currentFormName || "filled_form").replace(".pdf", "") + ".pdf";
   const pdfName = prompt("PDF Filename:", defaultName);
   if (!pdfName) return;
@@ -178,7 +202,7 @@ async function loadEditor(filename, existingData) {
     currentFormName = existingData ? existingData.form_name : "";
     patterns = {}; 
 
-    // FETCH 3 FILES: Mapping, PDF, and TTF Font
+    // Fetch 3 Files
     const [mapping, pdfBytes, fontBytes] = await Promise.all([
       fetch(filename).then(r => r.json()),
       fetch("template.pdf").then(r => r.arrayBuffer()),
@@ -191,7 +215,7 @@ async function loadEditor(filename, existingData) {
 
     UI.renderForm(mapping, patterns);
     
-    // RESTORE LOGIC: Database -> Draft -> Blank
+    // RESTORE LOGIC
     if (existingData) {
       UI.fillFormData(existingData.form_data);
     } else {
