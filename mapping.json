@@ -209,7 +209,9 @@
         "font_size": 20,
         "align": "left",
         "multiline": false,
-        "group": "APPLICANT 1"
+        "group": "APPLICANT 1",
+        "type": "static",
+        "static_value": "PAN"
       },
       {
         "name": "ADDRESS PROOF",
@@ -223,7 +225,9 @@
         "font_size": 20,
         "align": "left",
         "multiline": false,
-        "group": "APPLICANT 1"
+        "group": "APPLICANT 1",
+        "type": "static",
+        "static_value": "AADHAAR"
       },
       {
         "name": "FULL ADDRESS",
