@@ -26,8 +26,31 @@ function clearDraft(filename) {
 // --- INITIALIZATION ---
 window.addEventListener("DOMContentLoaded", async () => {
   const user = await Auth.initSupabase();
+  
+  // Set initial history state so we don't exit immediately on first back
+  history.replaceState({ page: 'home' }, "", ""); 
+
   if (user) loadDashboard();
   else UI.showScreen("auth-screen");
+});
+
+// --- NAVIGATION FIX (SYSTEM BACK BUTTON) ---
+window.addEventListener("popstate", (event) => {
+  // If the user presses "Back" and the state is empty or 'home', go to dashboard
+  if (!event.state || event.state.page === 'home') {
+    // If we are currently logged in, show dashboard, otherwise auth
+    const user = Auth.getUser();
+    if (user) {
+      UI.showScreen("home-screen");
+      loadSavedList(); // Refresh list
+    } else {
+      UI.showScreen("auth-screen");
+    }
+  } 
+  // If user goes forward to editor (optional handling)
+  else if (event.state.page === 'editor') {
+    UI.showScreen("form-screen");
+  }
 });
 
 // --- EVENT LISTENERS ---
@@ -62,10 +85,13 @@ document.getElementById("search-input").onkeyup = (e) => {
 };
 
 // Editor Actions
-document.getElementById("btn-back").onclick = loadDashboard;
+// FIX: Update the UI Back button to use history.back()
+// This ensures the UI button and System Back button behave the same way
+document.getElementById("btn-back").onclick = () => {
+  window.history.back(); 
+};
 
 document.getElementById("btn-save").onclick = async () => {
-  // 1. Validate First
   if (!UI.validateForm()) return;
 
   const { data, nameGuess } = UI.getFormData();
@@ -100,33 +126,23 @@ document.getElementById("btn-save").onclick = async () => {
   if (error) UI.showToast("Error: " + error.message);
   else {
     UI.showToast("Saved Successfully!");
-    clearDraft(currentFormType); // Clear draft after save
+    clearDraft(currentFormType); 
     loadSavedList(); 
   }
 };
 
 document.getElementById("btn-preview").onclick = async () => {
   if (!currentTemplateBytes || !currentFontBytes) return;
-  
   const bytes = await PDF.generatePDF(
-    currentMapping, 
-    currentTemplateBytes, 
-    currentFontBytes,
-    (id) => {
-      const el = document.getElementById(id);
-      return el ? el.value : "";
-    }
+    currentMapping, currentTemplateBytes, currentFontBytes,
+    (id) => { const el = document.getElementById(id); return el ? el.value : ""; }
   );
-
   const blob = new Blob([bytes], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
-  window.open(url, "_blank");
+  window.open(URL.createObjectURL(blob), "_blank");
 };
 
 document.getElementById("btn-print").onclick = async () => {
   if (!currentTemplateBytes || !currentFontBytes) return;
-  
-  // Validate before print? Optional, but good practice.
   if (!UI.validateForm()) return;
 
   let defaultName = (currentFormName || "filled_form").replace(".pdf", "") + ".pdf";
@@ -134,13 +150,8 @@ document.getElementById("btn-print").onclick = async () => {
   if (!pdfName) return;
 
   const bytes = await PDF.generatePDF(
-    currentMapping, 
-    currentTemplateBytes, 
-    currentFontBytes,
-    (id) => {
-      const el = document.getElementById(id);
-      return el ? el.value : "";
-    }
+    currentMapping, currentTemplateBytes, currentFontBytes,
+    (id) => { const el = document.getElementById(id); return el ? el.value : ""; }
   );
 
   const blob = new Blob([bytes], { type: "application/pdf" });
@@ -197,12 +208,14 @@ async function loadSavedList() {
 
 async function loadEditor(filename, existingData) {
   try {
+    // FIX: Push a new history state so "Back" button works
+    history.pushState({ page: 'editor' }, "Form Editor", "#editor");
+
     currentFormType = filename;
     currentFormId = existingData ? existingData.id : null;
     currentFormName = existingData ? existingData.form_name : "";
     patterns = {}; 
 
-    // Fetch 3 Files
     const [mapping, pdfBytes, fontBytes] = await Promise.all([
       fetch(filename).then(r => r.json()),
       fetch("template.pdf").then(r => r.arrayBuffer()),
@@ -215,7 +228,6 @@ async function loadEditor(filename, existingData) {
 
     UI.renderForm(mapping, patterns);
     
-    // RESTORE LOGIC
     if (existingData) {
       UI.fillFormData(existingData.form_data);
     } else {
@@ -225,7 +237,6 @@ async function loadEditor(filename, existingData) {
       }
     }
     
-    // Auto-Save Trigger
     document.getElementById("dynamicForm").oninput = () => {
        const { data } = UI.getFormData();
        saveDraft(filename, data);
@@ -235,5 +246,6 @@ async function loadEditor(filename, existingData) {
 
   } catch (err) {
     UI.showToast("Error loading template: " + err.message);
+    history.back(); // If loading failed, go back
   }
 }
