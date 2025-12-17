@@ -1,4 +1,7 @@
 /* sw.js */
+// 1. Increment the version to force the browser to update the cache
+const CACHE_NAME = "form-app-v9"; 
+
 const ASSETS = [
   "./",
   "./index.html",
@@ -13,8 +16,10 @@ const ASSETS = [
   "./mapping_3.json",
   "./mapping_minor.json",
   "./manifest.json",
-  "./icon-192.png", // <--- ADD THIS
-  "./icon-512.png", // <--- ADD THIS
+  // 2. ADD THESE TWO LINES (Must match your actual filenames)
+  "./icon-192x192.png",
+  "./icon-512x512.png",
+  // -------------------------------------------------------
   "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js",
   "https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js",
   "https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"
