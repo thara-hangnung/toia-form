@@ -1,11 +1,12 @@
-const CACHE_NAME = "form-app-v6"; // Increment Version
+/* sw.js */
+const CACHE_NAME = "form-app-v7"; 
 const ASSETS = [
   "./",
   "./index.html",
-  "./main.js",           // NEW
-  "./auth.js",           // NEW
-  "./ui.js",             // NEW
-  "./pdf-generator.js",  // NEW
+  "./main.js",
+  "./auth.js",
+  "./ui.js",
+  "./pdf-generator.js",
   "./template.pdf",
   "./DejaVuSans.ttf",
   "./mapping_1.json",
@@ -28,7 +29,6 @@ self.addEventListener("fetch", (e) => {
   );
 });
 
-// Clean up old caches (Important for updates)
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) => Promise.all(
