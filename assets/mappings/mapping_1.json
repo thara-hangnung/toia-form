@@ -3,12 +3,7 @@
     "0": [
       {
         "name": "OFFICE NAME",
-        "rect": [
-          69,
-          445,
-          300,
-          30
-        ],
+        "rect": [ 69, 445, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -17,12 +12,7 @@
       },
       {
         "name": "OFFICE ADDRESS",
-        "rect": [
-          68,
-          483,
-          300,
-          30
-        ],
+        "rect": [ 68, 483, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -31,12 +21,7 @@
       },
       {
         "name": "SCHEME",
-        "rect": [
-          70,
-          656,
-          141,
-          29
-        ],
+        "rect": [ 70, 656, 141, 29 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -45,12 +30,7 @@
       },
       {
         "name": "AMOUNT",
-        "rect": [
-          375,
-          1147,
-          126,
-          27
-        ],
+        "rect": [ 375, 1147, 126, 27 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -59,12 +39,7 @@
       },
       {
         "name": "AMOUNT IN WORDS",
-        "rect": [
-          573,
-          1143,
-          750,
-          32
-        ],
+        "rect": [ 573, 1143, 750, 32 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -73,12 +48,7 @@
       },
       {
         "name": "NAME",
-        "rect": [
-          209,
-          623,
-          300,
-          30
-        ],
+        "rect": [ 209, 623, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -87,12 +57,7 @@
       },
       {
         "name": "SCHEME",
-        "rect": [
-          651,
-          41,
-          300,
-          30
-        ],
+        "rect": [ 651, 41, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -101,12 +66,7 @@
       },
       {
         "name": "NAME",
-        "rect": [
-          548,
-          1262,
-          300,
-          30
-        ],
+        "rect": [ 548, 1262, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -115,12 +75,7 @@
       },
       {
         "name": "CO",
-        "rect": [
-          548,
-          1297,
-          300,
-          30
-        ],
+        "rect": [ 548, 1297, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -129,26 +84,18 @@
       },
       {
         "name": "GENDER",
-        "rect": [
-          548,
-          1330,
-          300,
-          30
-        ],
+        "rect": [ 548, 1330, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
         "multiline": false,
-        "group": "APPLICANT 1"
+        "group": "APPLICANT 1",
+        "type": "select",
+        "options": ["MALE", "FEMALE"]
       },
       {
         "name": "DOB",
-        "rect": [
-          547,
-          1365,
-          300,
-          30
-        ],
+        "rect": [ 547, 1365, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -157,12 +104,7 @@
       },
       {
         "name": "AADHAAR",
-        "rect": [
-          547,
-          1423,
-          300,
-          30
-        ],
+        "rect": [ 547, 1423, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -171,12 +113,7 @@
       },
       {
         "name": "PAN",
-        "rect": [
-          547,
-          1457,
-          300,
-          30
-        ],
+        "rect": [ 547, 1457, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -185,12 +122,7 @@
       },
       {
         "name": "MOBILE NO",
-        "rect": [
-          549,
-          1716,
-          300,
-          30
-        ],
+        "rect": [ 549, 1716, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -199,12 +131,7 @@
       },
       {
         "name": "ID PROOF",
-        "rect": [
-          549,
-          1803,
-          300,
-          30
-        ],
+        "rect": [ 549, 1803, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -215,12 +142,7 @@
       },
       {
         "name": "ADDRESS PROOF",
-        "rect": [
-          549,
-          1907,
-          300,
-          30
-        ],
+        "rect": [ 549, 1907, 300, 30 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -231,12 +153,7 @@
       },
       {
         "name": "FULL ADDRESS",
-        "rect": [
-          549,
-          1530,
-          307,
-          87
-        ],
+        "rect": [ 549, 1530, 307, 87 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -246,12 +163,7 @@
       },
       {
         "name": "FULL ADDRESS",
-        "rect": [
-          549,
-          1626,
-          304,
-          81
-        ],
+        "rect": [ 549, 1626, 304, 81 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -263,12 +175,7 @@
     "1": [
       {
         "name": "NAME",
-        "rect": [
-          129,
-          1099,
-          300,
-          35
-        ],
+        "rect": [ 129, 1099, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -277,12 +184,7 @@
       },
       {
         "name": "NOMINEE NAME",
-        "rect": [
-          183,
-          1312,
-          300,
-          35
-        ],
+        "rect": [ 183, 1312, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "center",
@@ -291,12 +193,7 @@
       },
       {
         "name": "NOMINEE RELATIONSHIP",
-        "rect": [
-          184,
-          1346,
-          300,
-          35
-        ],
+        "rect": [ 184, 1346, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "center",
@@ -305,12 +202,7 @@
       },
       {
         "name": "NOMINEE ADDRESS",
-        "rect": [
-          490,
-          1315,
-          454,
-          66
-        ],
+        "rect": [ 490, 1315, 454, 66 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -320,12 +212,7 @@
       },
       {
         "name": "SHARE IN %",
-        "rect": [
-          1173,
-          1312,
-          161,
-          32
-        ],
+        "rect": [ 1173, 1312, 161, 32 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -336,12 +223,7 @@
       },
       {
         "name": "OWNER OR TRUSTEE",
-        "rect": [
-          1344,
-          1313,
-          300,
-          35
-        ],
+        "rect": [ 1344, 1313, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -397,12 +279,7 @@
       },
       {
         "name": "Whiteout_11",
-        "rect": [
-          484,
-          1313,
-          467,
-          72
-        ],
+        "rect": [ 484, 1313, 467, 72 ],
         "type": "whiteout",
         "font": "DejaVuSans",
         "font_size": 12,
@@ -411,12 +288,7 @@
       },
       {
         "name": "Whiteout_12",
-        "rect": [
-          183,
-          1313,
-          298,
-          76
-        ],
+        "rect": [ 183, 1313, 298, 76 ],
         "type": "whiteout",
         "font": "DejaVuSans",
         "font_size": 12,
@@ -427,12 +299,7 @@
     "2": [
       {
         "name": "NAME",
-        "rect": [
-          310,
-          344,
-          300,
-          35
-        ],
+        "rect": [ 310, 344, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -441,12 +308,7 @@
       },
       {
         "name": "NAME",
-        "rect": [
-          532,
-          1106,
-          300,
-          35
-        ],
+        "rect": [ 532, 1106, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -455,12 +317,7 @@
       },
       {
         "name": "AADHAAR",
-        "rect": [
-          532,
-          1339,
-          300,
-          35
-        ],
+        "rect": [ 532, 1339, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -469,12 +326,7 @@
       },
       {
         "name": "PAN",
-        "rect": [
-          1133,
-          1338,
-          300,
-          35
-        ],
+        "rect": [ 1133, 1338, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -483,12 +335,7 @@
       },
       {
         "name": "LOCALITY",
-        "rect": [
-          1133,
-          1144,
-          300,
-          35
-        ],
+        "rect": [ 1133, 1144, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -497,12 +344,7 @@
       },
       {
         "name": "ROAD",
-        "rect": [
-          532,
-          1183,
-          300,
-          35
-        ],
+        "rect": [ 532, 1183, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -511,12 +353,7 @@
       },
       {
         "name": "CITY",
-        "rect": [
-          1133,
-          1222,
-          300,
-          35
-        ],
+        "rect": [ 1133, 1222, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -525,12 +362,7 @@
       },
       {
         "name": "STATE",
-        "rect": [
-          1133,
-          1263,
-          300,
-          35
-        ],
+        "rect": [ 1133, 1263, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -539,12 +371,7 @@
       },
       {
         "name": "PINCODE",
-        "rect": [
-          532,
-          1261,
-          300,
-          35
-        ],
+        "rect": [ 532, 1261, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -553,12 +380,7 @@
       },
       {
         "name": "MOBILE NO",
-        "rect": [
-          532,
-          1298,
-          300,
-          35
-        ],
+        "rect": [ 532, 1298, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -567,12 +389,7 @@
       },
       {
         "name": "KYC IDENTITY",
-        "rect": [
-          833,
-          1452,
-          300,
-          35
-        ],
+        "rect": [ 833, 1452, 300, 35 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",
@@ -582,12 +399,7 @@
       },
       {
         "name": "KYC ADDRESS",
-        "rect": [
-          833,
-          1489,
-          416,
-          38
-        ],
+        "rect": [ 833, 1489, 416, 38 ],
         "font": "DejaVuSans",
         "font_size": 20,
         "align": "left",

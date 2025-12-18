@@ -139,7 +139,9 @@
         "font_size": 20,
         "align": "left",
         "multiline": false,
-        "group": "APPLICANT 1"
+        "group": "APPLICANT 1",
+        "type": "select",
+        "options": ["MALE", "FEMALE"]
       },
       {
         "name": "DOB",
@@ -299,7 +301,9 @@
         "font_size": 20,
         "align": "left",
         "multiline": false,
-        "group": "MINOR"
+        "group": "MINOR",
+        "type": "select",
+        "options": ["MALE", "FEMALE"]
       },
       {
         "name": "RELATIONSHIP WITH CHILD",
