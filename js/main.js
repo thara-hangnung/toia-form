@@ -1,4 +1,4 @@
-/* main.js */
+/* js/main.js */
 import * as Auth from './auth.js';
 import * as UI from './ui.js';
 import * as PDF from './pdf-generator.js';
@@ -36,18 +36,15 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 // --- NAVIGATION FIX (SYSTEM BACK BUTTON) ---
 window.addEventListener("popstate", (event) => {
-  // If the user presses "Back" and the state is empty or 'home', go to dashboard
   if (!event.state || event.state.page === 'home') {
-    // If we are currently logged in, show dashboard, otherwise auth
     const user = Auth.getUser();
     if (user) {
       UI.showScreen("home-screen");
-      loadSavedList(); // Refresh list
+      loadSavedList(); 
     } else {
       UI.showScreen("auth-screen");
     }
   } 
-  // If user goes forward to editor (optional handling)
   else if (event.state.page === 'editor') {
     UI.showScreen("form-screen");
   }
@@ -85,8 +82,6 @@ document.getElementById("search-input").onkeyup = (e) => {
 };
 
 // Editor Actions
-// FIX: Update the UI Back button to use history.back()
-// This ensures the UI button and System Back button behave the same way
 document.getElementById("btn-back").onclick = () => {
   window.history.back(); 
 };
@@ -208,7 +203,6 @@ async function loadSavedList() {
 
 async function loadEditor(filename, existingData) {
   try {
-    // FIX: Push a new history state so "Back" button works
     history.pushState({ page: 'editor' }, "Form Editor", "#editor");
 
     currentFormType = filename;
@@ -217,9 +211,9 @@ async function loadEditor(filename, existingData) {
     patterns = {}; 
 
     const [mapping, pdfBytes, fontBytes] = await Promise.all([
-      fetch(filename).then(r => r.json()),
-      fetch("template.pdf").then(r => r.arrayBuffer()),
-      fetch("DejaVuSans.ttf").then(r => r.arrayBuffer()) 
+      fetch(`assets/mappings/${filename}`).then(r => r.json()),
+      fetch("assets/pdf/template.pdf").then(r => r.arrayBuffer()),
+      fetch("assets/fonts/DejaVuSans.ttf").then(r => r.arrayBuffer()) 
     ]);
 
     currentMapping = mapping;
@@ -246,6 +240,34 @@ async function loadEditor(filename, existingData) {
 
   } catch (err) {
     UI.showToast("Error loading template: " + err.message);
-    history.back(); // If loading failed, go back
+    console.error(err);
+    history.back();
   }
 }
+
+// --- PWA INSTALLATION LOGIC ---
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  const installBtn = document.getElementById('btn-install');
+  if (installBtn) {
+    installBtn.style.display = 'block';
+    
+    installBtn.onclick = async () => {
+      installBtn.style.display = 'none';
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response: ${outcome}`);
+      deferredPrompt = null;
+    };
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  const installBtn = document.getElementById('btn-install');
+  if (installBtn) installBtn.style.display = 'none';
+  UI.showToast("App installed successfully!");
+});
