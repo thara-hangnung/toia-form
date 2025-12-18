@@ -13,7 +13,7 @@ let patterns = {};
 
 const OFFLINE_KEY = "offline_forms_queue";
 // REPLACE THIS WITH YOUR EMAIL TO SEE THE ADMIN BUTTON
-const ADMIN_EMAIL = "toia@toia.com"; 
+const ADMIN_EMAIL = "joseph@toia.com"; 
 
 // --- INITIALIZATION ---
 window.addEventListener("DOMContentLoaded", async () => {
