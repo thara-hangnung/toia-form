@@ -1,25 +1,25 @@
 /* sw.js */
-// 1. Increment the version to force the browser to update the cache
-const CACHE_NAME = "form-app-v9"; 
+const CACHE_NAME = "form-app-v10"; // Incremented version
 
 const ASSETS = [
   "./",
   "./index.html",
-  "./main.js",
-  "./auth.js",
-  "./ui.js",
-  "./pdf-generator.js",
-  "./template.pdf",
-  "./DejaVuSans.ttf",
-  "./mapping_1.json",
-  "./mapping_2.json",
-  "./mapping_3.json",
-  "./mapping_minor.json",
   "./manifest.json",
-  // 2. ADD THESE TWO LINES (Must match your actual filenames)
-  "./icon-192x192.png",
-  "./icon-512x512.png",
-  // -------------------------------------------------------
+  // JS
+  "./js/main.js",
+  "./js/auth.js",
+  "./js/ui.js",
+  "./js/pdf-generator.js",
+  // Assets
+  "./assets/pdf/template.pdf",
+  "./assets/fonts/DejaVuSans.ttf",
+  "./assets/mappings/mapping_1.json",
+  "./assets/mappings/mapping_2.json",
+  "./assets/mappings/mapping_3.json",
+  "./assets/mappings/mapping_minor.json",
+  "./assets/icons/icon-192x192.png",
+  "./assets/icons/icon-512x512.png",
+  // External
   "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js",
   "https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js",
   "https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"
