@@ -12,7 +12,7 @@ let currentFormName = "";
 let patterns = {}; 
 
 const OFFLINE_KEY = "offline_forms_queue";
-// REPLACE THIS WITH YOUR EMAIL TO SEE THE ADMIN BUTTON
+// REPLACE THIS WITH YOUR EMAIL
 const ADMIN_EMAIL = "joseph@toia.com"; 
 
 // --- INITIALIZATION ---
@@ -27,11 +27,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Helper: Check Sub before Loading Dashboard
 function verifyAndLoad() {
   const user = Auth.getUser();
   
-  // Admin Check: If you are the admin, skip sub check
+  // Admin Check
   if (user.email === ADMIN_EMAIL) {
     document.getElementById("btn-admin").style.display = "block";
     loadDashboard();
@@ -180,7 +179,6 @@ document.getElementById("btn-save").onclick = async () => {
   }
 };
 
-// SHARE BUTTON (Option 3)
 document.getElementById("btn-share").onclick = async () => {
   if (!currentTemplateBytes) return;
   if (!UI.validateForm()) return;
@@ -207,8 +205,7 @@ document.getElementById("btn-share").onclick = async () => {
       console.log("Share failed:", err);
     }
   } else {
-    UI.showToast("Sharing not supported on this device. Downloading instead.");
-    // Fallback to download
+    UI.showToast("Sharing not supported. Downloading...");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = defaultName;
@@ -230,7 +227,7 @@ document.getElementById("btn-print").onclick = async () => {
   a.click();
 };
 
-// --- ADMIN LOGIC ---
+// --- UPDATED ADMIN LOGIC ---
 async function loadAdminDashboard() {
   const listEl = document.getElementById("admin-user-list");
   listEl.innerHTML = "Loading Users...";
@@ -238,7 +235,7 @@ async function loadAdminDashboard() {
   const { data, error } = await Auth.getAllUsers();
   
   if (error) {
-    listEl.innerHTML = `<div style="color:red">Error: ${error.message} (Did you run the SQL?)</div>`;
+    listEl.innerHTML = `<div style="color:red">Error: ${error.message}</div>`;
     return;
   }
   
@@ -260,28 +257,68 @@ async function loadAdminDashboard() {
       }
     }
     
-    // Don't show activation button for self
     const isSelf = (u.email === Auth.getUser().email);
     
     const div = document.createElement("div");
     div.className = "user-list-item";
+    
+    // UI: Email + Status + Buttons
+    // Buttons: [1 Yr] [Custom] [Pause]
+    
     div.innerHTML = `
-      <div>
+      <div style="flex:1">
         <div class="user-email">${u.email} ${isSelf ? '(You)' : ''}</div>
         <div class="user-status ${isActive ? 'status-active' : ''}">${statusText}</div>
       </div>
-      ${!isSelf ? '<button class="btn btn-outline" style="font-size:0.75rem; padding:4px 8px;">Activate 1 Yr</button>' : ''}
+      ${!isSelf ? `
+      <div style="display:flex; gap:6px;">
+         <button class="btn btn-success btn-act-1yr" style="font-size:0.7rem; padding:4px 6px;">+1 Yr</button>
+         <button class="btn btn-outline btn-act-custom" style="font-size:0.7rem; padding:4px 6px;">Edit</button>
+         ${isActive ? '<button class="btn btn-danger btn-act-pause" style="font-size:0.7rem; padding:4px 6px;">Stop</button>' : ''}
+      </div>` : ''}
     `;
     
     if (!isSelf) {
-      div.querySelector("button").onclick = async () => {
-        if(confirm(`Activate ${u.email} for 1 year?`)) {
-          UI.showToast("Activating...");
-          await Auth.activateUser(u.id);
-          UI.showToast("Done!");
-          loadAdminDashboard(); // Refresh
+      // Button: Activate 1 Year
+      div.querySelector(".btn-act-1yr").onclick = async () => {
+        if(confirm(`Extend ${u.email} for 1 year?`)) {
+          // Calculate date: Today + 1 year
+          const d = new Date();
+          d.setFullYear(d.getFullYear() + 1);
+          const dateStr = d.toISOString().split('T')[0];
+          
+          UI.showToast("Updating...");
+          await Auth.setUserExpiry(u.id, dateStr);
+          UI.showToast("Updated!");
+          loadAdminDashboard();
         }
       };
+
+      // Button: Custom Date
+      div.querySelector(".btn-act-custom").onclick = async () => {
+        const currentExp = expiry ? expiry : new Date().toISOString().split('T')[0];
+        const newDate = prompt("Set Expiry Date (YYYY-MM-DD):", currentExp);
+        if(newDate) {
+           UI.showToast("Updating...");
+           await Auth.setUserExpiry(u.id, newDate);
+           UI.showToast("Updated!");
+           loadAdminDashboard();
+        }
+      };
+
+      // Button: Pause/Stop (Set to yesterday)
+      const btnPause = div.querySelector(".btn-act-pause");
+      if (btnPause) {
+        btnPause.onclick = async () => {
+          if(confirm(`Pause access for ${u.email} immediately?`)) {
+             // Set date to 2000-01-01
+             UI.showToast("Pausing...");
+             await Auth.setUserExpiry(u.id, "2000-01-01");
+             UI.showToast("Access Paused.");
+             loadAdminDashboard();
+          }
+        };
+      }
     }
     listEl.appendChild(div);
   });

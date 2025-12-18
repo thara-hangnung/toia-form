@@ -43,9 +43,7 @@ export async function logout() {
 
 export async function updateProfile(metaData) {
   if (!supabase) return { error: { message: "No connection" } };
-  const { data, error } = await supabase.auth.updateUser({
-    data: metaData
-  });
+  const { data, error } = await supabase.auth.updateUser({ data: metaData });
   if (data.user) user = data.user;
   return { user: data.user, error };
 }
@@ -53,15 +51,17 @@ export async function updateProfile(metaData) {
 // --- ADMIN FUNCTIONS ---
 export async function getAllUsers() {
   if (!supabase) return { error: { message: "No connection" } };
-  // Calls the 'get_all_users' SQL function we created
   const { data, error } = await supabase.rpc('get_all_users');
   return { data, error };
 }
 
-export async function activateUser(targetId) {
+// NEW: Set generic expiry date
+export async function setUserExpiry(targetId, dateStr) {
   if (!supabase) return { error: { message: "No connection" } };
-  // Calls the 'activate_subscription' SQL function
-  const { error } = await supabase.rpc('activate_subscription', { target_user_id: targetId });
+  const { error } = await supabase.rpc('set_subscription_expiry', { 
+    target_user_id: targetId, 
+    new_date: dateStr 
+  });
   return { error };
 }
 // ---------------------
