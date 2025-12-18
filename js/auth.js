@@ -1,4 +1,4 @@
-/* auth.js */
+/* js/auth.js */
 const { createClient } = window.supabase;
 
 let supabase = null;
@@ -29,7 +29,7 @@ export async function login(email, password) {
   if (error && error.message.includes("Invalid login")) {
     const res = await supabase.auth.signUp({ email, password });
     if (res.error) return { error: res.error };
-    return { message: "Account created! You are logged in." };
+    return { message: "Account created! Ask Admin to activate subscription." };
   }
   
   if (data.user) user = data.user;
@@ -48,6 +48,42 @@ export async function updateProfile(metaData) {
   });
   if (data.user) user = data.user;
   return { user: data.user, error };
+}
+
+// --- ADMIN FUNCTIONS ---
+export async function getAllUsers() {
+  if (!supabase) return { error: { message: "No connection" } };
+  // Calls the 'get_all_users' SQL function we created
+  const { data, error } = await supabase.rpc('get_all_users');
+  return { data, error };
+}
+
+export async function activateUser(targetId) {
+  if (!supabase) return { error: { message: "No connection" } };
+  // Calls the 'activate_subscription' SQL function
+  const { error } = await supabase.rpc('activate_subscription', { target_user_id: targetId });
+  return { error };
+}
+// ---------------------
+
+export function checkSubscription() {
+  if (!user) return { valid: false, reason: "Not logged in" };
+  
+  const expiryStr = user.user_metadata?.subscription_expiry;
+  
+  if (!expiryStr) {
+    return { valid: false, reason: "No active subscription found." };
+  }
+  
+  const expiryDate = new Date(expiryStr);
+  const now = new Date();
+  
+  if (now > expiryDate) {
+    return { valid: false, reason: "Subscription expired on " + expiryDate.toLocaleDateString() };
+  }
+  
+  const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+  return { valid: true, daysLeft, expiryStr };
 }
 
 export function getUser() { return user; }

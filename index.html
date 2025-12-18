@@ -6,7 +6,6 @@
   <title>Post Office Form App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#2563eb" />
-  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -23,28 +22,21 @@
     }
 
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-    
-    /* Layout */
     .screen { display: none; padding: 20px; max-width: 800px; margin: 0 auto; animation: fadeEffect 0.3s; }
     .active { display: block; }
     @keyframes fadeEffect { from {opacity: 0; transform: translateY(10px);} to {opacity: 1; transform: translateY(0);} }
 
-    /* Headers */
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     h2, h3, h4 { margin: 0; font-weight: 700; color: #0f172a; }
     h4 { margin-top: 24px; margin-bottom: 12px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light); }
 
-    /* Cards */
     .card { background: var(--surface); border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-    
-    /* Inputs */
     .input-group { margin-bottom: 16px; }
     label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
     input, textarea, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; box-sizing: border-box; transition: border 0.2s; }
     input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
     .readonly { background: #f1f5f9; color: var(--text-light); cursor: not-allowed; }
 
-    /* Buttons */
     .btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-size: 0.95rem; gap: 8px; }
     .btn-primary { background: var(--primary); color: white; width: 100%; }
     .btn-primary:hover { background: var(--primary-dark); }
@@ -52,31 +44,35 @@
     .btn-outline:hover { background: #f1f5f9; }
     .btn-danger { background: #fef2f2; color: var(--danger); }
     .btn-danger:hover { background: #fee2e2; }
+    .btn-success { background: #f0fdf4; color: var(--success); }
+    .btn-success:hover { background: #dcfce7; }
     .btn-icon { padding: 8px; border-radius: 50%; border: none; background: transparent; cursor: pointer; }
     .btn-icon:hover { background: #f1f5f9; }
 
-    /* Dashboard Grid */
     .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
     .template-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
     .template-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37,99,235,0.1); }
     .template-icon { font-size: 24px; margin-bottom: 8px; display: block; }
     
-    /* Saved List */
     .saved-item { background: var(--surface); padding: 16px; margin-bottom: 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s; }
     .saved-item:hover { border-color: var(--primary); }
     .saved-info strong { display: block; font-size: 1rem; margin-bottom: 4px; }
     .saved-info span { font-size: 0.8rem; color: var(--text-light); display: inline-flex; align-items: center; gap: 6px; }
     .tag-offline { background: #fff7ed; color: #ea580c; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; border: 1px solid #ffedd5; }
 
-    /* Form Toolbar */
     .toolbar { position: sticky; bottom: 20px; display: flex; gap: 10px; margin-top: 20px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 10px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 100; }
     .toolbar .btn { flex: 1; }
 
-    /* Toast */
+    /* Admin List Styles */
+    .user-list-item { padding: 12px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .user-list-item:last-child { border-bottom: none; }
+    .user-email { font-weight: 500; font-size: 0.9rem; }
+    .user-status { font-size: 0.75rem; color: var(--text-light); display:block;}
+    .status-active { color: var(--success); font-weight: bold; }
+
     #toast { visibility: hidden; min-width: 250px; background-color: #1e293b; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; transform: translateX(-50%); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
     #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
     
-    /* Avatar */
     .avatar { width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; cursor: pointer; }
 
     @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
@@ -104,10 +100,30 @@
     </div>
   </div>
 
+  <div id="sub-screen" class="screen">
+    <div class="card" style="max-width: 400px; margin: 60px auto; text-align: center; border-color: var(--danger);">
+      <div style="font-size: 48px; margin-bottom: 10px;">🔒</div>
+      <h2 style="color:var(--text); margin-bottom: 8px;">Access Locked</h2>
+      <p id="sub-msg" style="color:var(--text-light); margin-bottom: 24px; line-height: 1.5;">
+        Your subscription has expired or hasn't been activated yet.
+      </p>
+      
+      <div style="background: #f8fafc; padding: 15px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 20px;">
+        <strong>To Activate:</strong><br/>
+        Please contact the admin and pay the subscription fee in cash to unlock your account for 1 year.
+      </div>
+
+      <button class="btn btn-outline" id="btn-logout-sub">Log Out</button>
+    </div>
+  </div>
+
   <div id="home-screen" class="screen">
     <header>
       <h3>Dashboard</h3>
       <div style="display:flex; align-items:center; gap: 12px;">
+        <button id="btn-admin" class="btn btn-outline" style="display:none; padding: 6px 12px; font-size: 0.8rem; border-color:var(--primary); color:var(--primary);">
+          ⚙ Admin
+        </button>
         <button id="btn-install" class="btn btn-primary" style="display:none; padding: 6px 12px; font-size: 0.8rem;">
           ⬇ Install
         </button>
@@ -160,9 +176,28 @@
         <input type="tel" id="profile-phone" placeholder="e.g. 9876543210" />
       </div>
       
+      <div class="input-group" style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
+        <label>Subscription Status</label>
+        <input type="text" id="profile-sub" class="readonly" readonly value="Checking..." />
+      </div>
+
       <div style="display:flex; gap:10px; margin-top:20px;">
         <button class="btn btn-primary" id="btn-save-profile">Save Profile</button>
         <button class="btn btn-danger" id="btn-logout" style="margin-left:auto;">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-screen" class="screen">
+    <header>
+      <h3>Admin Panel</h3>
+      <button class="btn btn-outline" id="btn-close-admin">Close</button>
+    </header>
+    <div class="card">
+      <h4>Customer Management</h4>
+      <p style="font-size:0.9rem; color:var(--text-light); margin-bottom:15px;">Click "Activate" to give a user 1-year access.</p>
+      <div id="admin-user-list">
+        Loading...
       </div>
     </div>
   </div>
@@ -171,7 +206,8 @@
     <header>
       <button id="btn-back" class="btn btn-outline" style="padding: 6px 12px;">← Back</button>
       <h3 id="editor-title" style="font-size:1.1rem;">Form Editor</h3>
-      <div style="width:60px;"></div> </header>
+      <div style="width:60px;"></div>
+    </header>
 
     <div class="card">
       <form id="dynamicForm"></form>
@@ -179,8 +215,8 @@
 
     <div class="toolbar">
       <button id="btn-save" class="btn btn-primary">💾 Save</button>
-      <button id="btn-preview" class="btn btn-outline">👁 Preview</button>
-      <button id="btn-print" class="btn btn-outline">🖨 PDF</button>
+      <button id="btn-share" class="btn btn-success">📤 Share (WhatsApp)</button>
+      <button id="btn-print" class="btn btn-outline">🖨 Download PDF</button>
     </div>
   </div>
 

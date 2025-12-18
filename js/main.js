@@ -11,8 +11,9 @@ let currentFormType = "";
 let currentFormName = "";
 let patterns = {}; 
 
-// OFFLINE STORAGE KEYS
 const OFFLINE_KEY = "offline_forms_queue";
+// REPLACE THIS WITH YOUR EMAIL TO SEE THE ADMIN BUTTON
+const ADMIN_EMAIL = "toia@toia.com"; 
 
 // --- INITIALIZATION ---
 window.addEventListener("DOMContentLoaded", async () => {
@@ -20,12 +21,33 @@ window.addEventListener("DOMContentLoaded", async () => {
   history.replaceState({ page: 'home' }, "", ""); 
 
   if (user) {
-    loadDashboard();
-    syncOfflineData(); // Try sync on load
+    verifyAndLoad();
   } else {
     UI.showScreen("auth-screen");
   }
 });
+
+// Helper: Check Sub before Loading Dashboard
+function verifyAndLoad() {
+  const user = Auth.getUser();
+  
+  // Admin Check: If you are the admin, skip sub check
+  if (user.email === ADMIN_EMAIL) {
+    document.getElementById("btn-admin").style.display = "block";
+    loadDashboard();
+    return;
+  }
+
+  const sub = Auth.checkSubscription();
+  if (!sub.valid) {
+    UI.showScreen("sub-screen");
+    document.getElementById("sub-msg").textContent = sub.reason;
+  } else {
+    loadDashboard();
+    syncOfflineData();
+    if (sub.daysLeft < 7) UI.showToast(`Warning: Subscription ends in ${sub.daysLeft} days.`);
+  }
+}
 
 // Network Status Listeners
 window.addEventListener('online', () => {
@@ -39,11 +61,13 @@ window.addEventListener('offline', () => {
 // --- NAVIGATION ---
 window.addEventListener("popstate", (event) => {
   if (!event.state || event.state.page === 'home') {
-    Auth.getUser() ? loadDashboard() : UI.showScreen("auth-screen");
+    Auth.getUser() ? verifyAndLoad() : UI.showScreen("auth-screen");
   } else if (event.state.page === 'editor') {
     UI.showScreen("form-screen");
   } else if (event.state.page === 'profile') {
     UI.showScreen("profile-screen");
+  } else if (event.state.page === 'admin') {
+    UI.showScreen("admin-screen");
   }
 });
 
@@ -56,12 +80,17 @@ document.getElementById("btn-login").onclick = async () => {
   const res = await Auth.login(e, p);
   if (res.error) document.getElementById("auth-msg").textContent = res.error.message;
   else {
-    UI.showToast("Welcome!");
-    loadDashboard();
+    if (res.message) UI.showToast(res.message);
+    verifyAndLoad();
   }
 };
 
 document.getElementById("btn-logout").onclick = async () => {
+  await Auth.logout();
+  UI.showScreen("auth-screen");
+};
+
+document.getElementById("btn-logout-sub").onclick = async () => {
   await Auth.logout();
   UI.showScreen("auth-screen");
 };
@@ -77,12 +106,18 @@ document.getElementById("btn-close-profile").onclick = () => history.back();
 document.getElementById("btn-save-profile").onclick = async () => {
   const name = document.getElementById("profile-name").value;
   const phone = document.getElementById("profile-phone").value;
-  
   const { error } = await Auth.updateProfile({ full_name: name, phone: phone });
-  
   if (error) UI.showToast("Error: " + error.message);
   else UI.showToast("Profile Updated!");
 };
+
+// --- ADMIN SCREEN ACTIONS ---
+document.getElementById("btn-admin").onclick = () => {
+  history.pushState({ page: 'admin' }, "Admin", "#admin");
+  loadAdminDashboard();
+  UI.showScreen("admin-screen");
+};
+document.getElementById("btn-close-admin").onclick = () => history.back();
 
 // Dashboard
 document.querySelectorAll(".template-card").forEach(btn => {
@@ -120,17 +155,13 @@ document.getElementById("btn-save").onclick = async () => {
     updated_at: new Date().toISOString()
   };
 
-  // CHECK OFFLINE
   if (!navigator.onLine) {
     saveOffline(payload, currentFormId);
     return;
   }
 
-  // ONLINE SAVE
   const supabase = Auth.getClient();
   let error;
-  
-  // If it's a temp ID (was offline), treat as new insert
   if (currentFormId && currentFormId.startsWith("temp_")) currentFormId = null;
 
   if (currentFormId) {
@@ -145,23 +176,48 @@ document.getElementById("btn-save").onclick = async () => {
   if (error) UI.showToast("Error: " + error.message);
   else {
     UI.showToast("Saved Successfully!");
-    loadSavedList(); // Refreshes list in background
+    loadSavedList();
   }
 };
 
-document.getElementById("btn-preview").onclick = async () => {
+// SHARE BUTTON (Option 3)
+document.getElementById("btn-share").onclick = async () => {
   if (!currentTemplateBytes) return;
+  if (!UI.validateForm()) return;
+  
+  UI.showToast("Generating PDF...");
+  
+  let defaultName = (currentFormName || "filled_form").replace(".pdf", "") + ".pdf";
   const bytes = await PDF.generatePDF(
     currentMapping, currentTemplateBytes, currentFontBytes,
     (id) => { const el = document.getElementById(id); return el ? el.value : ""; }
   );
-  window.open(URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })), "_blank");
+  
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const file = new File([blob], defaultName, { type: "application/pdf" });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: defaultName,
+        text: 'Here is the filled form.'
+      });
+    } catch (err) {
+      console.log("Share failed:", err);
+    }
+  } else {
+    UI.showToast("Sharing not supported on this device. Downloading instead.");
+    // Fallback to download
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = defaultName;
+    a.click();
+  }
 };
 
 document.getElementById("btn-print").onclick = async () => {
   if (!currentTemplateBytes) return;
-  if (!UI.validateForm()) return;
-  
   let defaultName = (currentFormName || "form").replace(".pdf", "") + ".pdf";
   const bytes = await PDF.generatePDF(
     currentMapping, currentTemplateBytes, currentFontBytes,
@@ -174,13 +230,69 @@ document.getElementById("btn-print").onclick = async () => {
   a.click();
 };
 
+// --- ADMIN LOGIC ---
+async function loadAdminDashboard() {
+  const listEl = document.getElementById("admin-user-list");
+  listEl.innerHTML = "Loading Users...";
+  
+  const { data, error } = await Auth.getAllUsers();
+  
+  if (error) {
+    listEl.innerHTML = `<div style="color:red">Error: ${error.message} (Did you run the SQL?)</div>`;
+    return;
+  }
+  
+  listEl.innerHTML = "";
+  
+  data.forEach(u => {
+    // Check expiry
+    let expiry = u.raw_user_meta_data?.subscription_expiry;
+    let isActive = false;
+    let statusText = "Inactive";
+    
+    if (expiry) {
+      const d = new Date(expiry);
+      if (d > new Date()) {
+        isActive = true;
+        statusText = `Active until ${d.toLocaleDateString()}`;
+      } else {
+        statusText = `Expired on ${d.toLocaleDateString()}`;
+      }
+    }
+    
+    // Don't show activation button for self
+    const isSelf = (u.email === Auth.getUser().email);
+    
+    const div = document.createElement("div");
+    div.className = "user-list-item";
+    div.innerHTML = `
+      <div>
+        <div class="user-email">${u.email} ${isSelf ? '(You)' : ''}</div>
+        <div class="user-status ${isActive ? 'status-active' : ''}">${statusText}</div>
+      </div>
+      ${!isSelf ? '<button class="btn btn-outline" style="font-size:0.75rem; padding:4px 8px;">Activate 1 Yr</button>' : ''}
+    `;
+    
+    if (!isSelf) {
+      div.querySelector("button").onclick = async () => {
+        if(confirm(`Activate ${u.email} for 1 year?`)) {
+          UI.showToast("Activating...");
+          await Auth.activateUser(u.id);
+          UI.showToast("Done!");
+          loadAdminDashboard(); // Refresh
+        }
+      };
+    }
+    listEl.appendChild(div);
+  });
+}
+
 // --- LOGIC FUNCTIONS ---
 
 function loadDashboard() {
   UI.showScreen("home-screen");
   loadSavedList();
   
-  // Update Avatar
   const user = Auth.getUser();
   const initial = (user?.user_metadata?.full_name || user?.email || "U")[0].toUpperCase();
   document.getElementById("btn-profile").textContent = initial;
@@ -191,99 +303,77 @@ function loadProfile() {
   if (user && user.user_metadata) {
     document.getElementById("profile-name").value = user.user_metadata.full_name || "";
     document.getElementById("profile-phone").value = user.user_metadata.phone || "";
+    
+    const sub = Auth.checkSubscription();
+    if (sub.valid) {
+        document.getElementById("profile-sub").value = `Active (Expires: ${new Date(sub.expiryStr).toLocaleDateString()})`;
+        document.getElementById("profile-sub").style.color = "green";
+    } else {
+        document.getElementById("profile-sub").value = "Inactive / Expired";
+        document.getElementById("profile-sub").style.color = "red";
+    }
   }
 }
 
-// --- OFFLINE & SYNC LOGIC ---
-
+// --- OFFLINE & SYNC ---
 function getOfflineForms() {
   return JSON.parse(localStorage.getItem(OFFLINE_KEY) || "[]");
 }
-
 function saveOffline(payload, id) {
   const list = getOfflineForms();
-  // Generate temp ID if needed
   const formId = id || "temp_" + Date.now();
-  payload.id = formId; // Attach ID to payload for local storage
-  
-  // Remove existing version if any
+  payload.id = formId; 
   const idx = list.findIndex(f => f.id === formId);
   if (idx >= 0) list.splice(idx, 1);
-  
   list.push(payload);
   localStorage.setItem(OFFLINE_KEY, JSON.stringify(list));
-  
-  currentFormId = formId; // Update global ID
+  currentFormId = formId; 
   UI.showToast("Saved (Offline). Will sync later.");
   loadSavedList();
 }
-
 async function syncOfflineData() {
   if (!navigator.onLine) return;
-  
   const list = getOfflineForms();
   if (list.length === 0) return;
-
   const statusEl = document.getElementById("sync-status");
   if(statusEl) statusEl.textContent = "Syncing...";
-
   const supabase = Auth.getClient();
   const failed = [];
-
   for (const form of list) {
-    // Strip the temp ID before sending to DB if it's new
     const { id, ...data } = form;
     let error;
-
     if (id.startsWith("temp_")) {
-      // Insert new
       const res = await supabase.from('forms').insert([data]);
       error = res.error;
     } else {
-      // Update existing
       const res = await supabase.from('forms').update(data).eq('id', id);
       error = res.error;
     }
-
     if (error) {
       console.error("Sync failed for", form.form_name, error);
-      failed.push(form); // Keep in queue
+      failed.push(form); 
     }
   }
-
   localStorage.setItem(OFFLINE_KEY, JSON.stringify(failed));
   if(statusEl) statusEl.textContent = failed.length ? "Sync Incomplete" : "All Synced";
   loadSavedList();
 }
-
 async function loadSavedList() {
   const listEl = document.getElementById("saved-list");
-  // Don't wipe list immediately to avoid flicker, just append checking
   const supabase = Auth.getClient();
   const user = Auth.getUser();
-
-  // 1. Get Offline Forms
   const offlineForms = getOfflineForms().filter(f => f.user_id === user.id);
-  
-  // 2. Get Online Forms (if online)
   let onlineForms = [];
   if (navigator.onLine) {
     const { data } = await supabase.from('forms').select('*').eq('user_id', user.id).order('updated_at', { ascending: false });
     if (data) onlineForms = data;
   }
-
-  // 3. Merge (Prefer offline version if it exists and is newer? tough. We just show both or de-dupe by ID)
-  // Simple merge: Show offline items at top with a tag
   listEl.innerHTML = "";
-  
-  // Render function
   const renderItem = (form, isOffline) => {
     const div = document.createElement("div");
     div.className = "saved-item";
-    
     const dateStr = new Date(form.updated_at).toLocaleDateString();
     const offlineTag = isOffline ? `<span class="tag-offline">Waiting to Sync</span>` : "";
-    
     div.innerHTML = `
       <div class="saved-info">
         <strong>${form.form_name} ${offlineTag}</strong>
@@ -294,10 +384,7 @@ async function loadSavedList() {
         ${!isOffline ? '<button class="btn-del btn-icon" style="color:var(--danger)">🗑</button>' : ''}
       </div>
     `;
-    
     div.querySelector(".btn-outline").onclick = () => loadEditor(form.form_type, form);
-    
-    // Only allow delete for online forms for safety, or implement offline delete later
     if (!isOffline) {
       div.querySelector(".btn-del").onclick = async (e) => {
         e.stopPropagation();
@@ -309,16 +396,13 @@ async function loadSavedList() {
     }
     listEl.appendChild(div);
   };
-
   if (offlineForms.length === 0 && onlineForms.length === 0) {
     listEl.innerHTML = "<p style='text-align:center;color:#94a3b8; margin-top:30px;'>No saved forms yet.</p>";
     return;
   }
-
   offlineForms.forEach(f => renderItem(f, true));
   onlineForms.forEach(f => renderItem(f, false));
 }
-
 async function loadEditor(filename, existingData) {
   try {
     history.pushState({ page: 'editor' }, "Form Editor", "#editor");
@@ -326,26 +410,19 @@ async function loadEditor(filename, existingData) {
     currentFormId = existingData ? existingData.id : null;
     currentFormName = existingData ? existingData.form_name : "";
     patterns = {}; 
-
-    // Load resources
     const [mapping, pdfBytes, fontBytes] = await Promise.all([
       fetch(`assets/mappings/${filename}`).then(r => r.json()),
       fetch("assets/pdf/template.pdf").then(r => r.arrayBuffer()),
       fetch("assets/fonts/DejaVuSans.ttf").then(r => r.arrayBuffer()) 
     ]);
-
     currentMapping = mapping;
     currentTemplateBytes = pdfBytes;
     currentFontBytes = fontBytes;
-
     UI.renderForm(mapping, patterns);
-    
     if (existingData) {
       UI.fillFormData(existingData.form_data);
     } 
-    
     UI.showScreen("form-screen");
-
   } catch (err) {
     UI.showToast("Error: " + err.message);
     history.back();
