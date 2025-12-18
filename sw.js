@@ -1,16 +1,14 @@
 /* sw.js */
-const CACHE_NAME = "form-app-v10"; // Incremented version
+const CACHE_NAME = "form-app-v12-offline"; // Incremented
 
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
-  // JS
   "./js/main.js",
   "./js/auth.js",
   "./js/ui.js",
   "./js/pdf-generator.js",
-  // Assets
   "./assets/pdf/template.pdf",
   "./assets/fonts/DejaVuSans.ttf",
   "./assets/mappings/mapping_1.json",
@@ -19,10 +17,10 @@ const ASSETS = [
   "./assets/mappings/mapping_minor.json",
   "./assets/icons/icon-192x192.png",
   "./assets/icons/icon-512x512.png",
-  // External
   "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js",
   "https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js",
-  "https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"
+  "https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js",
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
 ];
 
 self.addEventListener("install", (e) => {

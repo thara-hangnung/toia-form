@@ -41,5 +41,14 @@ export async function logout() {
   user = null;
 }
 
+export async function updateProfile(metaData) {
+  if (!supabase) return { error: { message: "No connection" } };
+  const { data, error } = await supabase.auth.updateUser({
+    data: metaData
+  });
+  if (data.user) user = data.user;
+  return { user: data.user, error };
+}
+
 export function getUser() { return user; }
 export function getClient() { return supabase; }
