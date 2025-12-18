@@ -36,18 +36,15 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 // --- NAVIGATION FIX (SYSTEM BACK BUTTON) ---
 window.addEventListener("popstate", (event) => {
-  // If the user presses "Back" and the state is empty or 'home', go to dashboard
   if (!event.state || event.state.page === 'home') {
-    // If we are currently logged in, show dashboard, otherwise auth
     const user = Auth.getUser();
     if (user) {
       UI.showScreen("home-screen");
-      loadSavedList(); // Refresh list
+      loadSavedList(); 
     } else {
       UI.showScreen("auth-screen");
     }
   } 
-  // If user goes forward to editor (optional handling)
   else if (event.state.page === 'editor') {
     UI.showScreen("form-screen");
   }
@@ -103,7 +100,6 @@ document.getElementById("btn-save").onclick = async () => {
   currentFormName = manualName;
   const supabase = Auth.getClient();
 
-  // We store currentFormType (e.g. "mapping_1.json") directly.
   const payload = {
     user_id: user.id,
     form_type: currentFormType,
@@ -209,13 +205,11 @@ async function loadEditor(filename, existingData) {
   try {
     history.pushState({ page: 'editor' }, "Form Editor", "#editor");
 
-    currentFormType = filename; // e.g. "mapping_1.json"
+    currentFormType = filename;
     currentFormId = existingData ? existingData.id : null;
     currentFormName = existingData ? existingData.form_name : "";
     patterns = {}; 
 
-    // UPDATED FETCH PATHS
-    // We assume filename (from DB or HTML) is just "mapping_1.json", so we prepend assets path
     const [mapping, pdfBytes, fontBytes] = await Promise.all([
       fetch(`assets/mappings/${filename}`).then(r => r.json()),
       fetch("assets/pdf/template.pdf").then(r => r.arrayBuffer()),
@@ -247,6 +241,33 @@ async function loadEditor(filename, existingData) {
   } catch (err) {
     UI.showToast("Error loading template: " + err.message);
     console.error(err);
-    history.back(); // If loading failed, go back
+    history.back();
   }
 }
+
+// --- PWA INSTALLATION LOGIC ---
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  const installBtn = document.getElementById('btn-install');
+  if (installBtn) {
+    installBtn.style.display = 'block';
+    
+    installBtn.onclick = async () => {
+      installBtn.style.display = 'none';
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response: ${outcome}`);
+      deferredPrompt = null;
+    };
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  const installBtn = document.getElementById('btn-install');
+  if (installBtn) installBtn.style.display = 'none';
+  UI.showToast("App installed successfully!");
+});
