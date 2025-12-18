@@ -18,6 +18,29 @@ export function fieldId(name, group) {
   return `f_${g}__${n}`;
 }
 
+// --- INDIAN NUMBER TO WORDS LOGIC ---
+function convertNumberToWords(amount) {
+  const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  const inWords = (num) => {
+    if ((num = num.toString()).length > 9) return 'overflow';
+    const n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+    if (!n) return; 
+    let str = '';
+    str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
+    str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
+    str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
+    str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
+    str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) + 'only ' : '';
+    return str;
+  };
+
+  if (!amount || amount == 0) return "";
+  const result = inWords(amount);
+  return result ? result.trim() + " Rupees Only" : "";
+}
+
 export function renderForm(mapping, patterns) {
   const form = document.getElementById("dynamicForm");
   form.innerHTML = "";
@@ -50,10 +73,40 @@ export function renderForm(mapping, patterns) {
     for (const f of fields) {
       const lbl = document.createElement("label");
       lbl.textContent = f.name;
-      const inp = f.multiline ? document.createElement("textarea") : document.createElement("input");
-      inp.id = f.id;
       
-      // INPUT MASKS
+      let inp;
+      
+      // 1. HANDLE DROPDOWNS (SELECT)
+      if (f.type === "select") {
+        inp = document.createElement("select");
+        inp.id = f.id;
+        // Default empty option
+        const defOpt = document.createElement("option");
+        defOpt.value = "";
+        defOpt.textContent = "-- Select --";
+        inp.appendChild(defOpt);
+        
+        if (f.options) {
+          f.options.forEach(opt => {
+            const o = document.createElement("option");
+            o.value = opt;
+            o.textContent = opt;
+            inp.appendChild(o);
+          });
+        }
+      } 
+      // 2. HANDLE TEXT AREAS
+      else if (f.multiline) {
+        inp = document.createElement("textarea");
+        inp.id = f.id;
+      } 
+      // 3. HANDLE STANDARD INPUTS
+      else {
+        inp = document.createElement("input");
+        inp.id = f.id;
+      }
+      
+      // EVENT LISTENERS
       inp.addEventListener("input", (e) => {
         let val = e.target.value.toUpperCase(); 
         
@@ -72,7 +125,18 @@ export function renderForm(mapping, patterns) {
         else if (f.name.includes("MOBILE") || f.name.includes("PHONE")) {
           val = val.replace(/\D/g, '').substring(0, 10);
         }
-        
+        // AUTO FILL AMOUNT IN WORDS
+        else if (f.name === "AMOUNT") {
+          const numericVal = val.replace(/[^0-9.]/g, ''); // keep numbers
+          const wordFieldId = fieldId("AMOUNT IN WORDS", "General"); // Assuming "General" group
+          const wordField = document.getElementById(wordFieldId);
+          if (wordField) {
+            wordField.value = convertNumberToWords(numericVal).toUpperCase();
+            // Trigger input event on the word field so anything dependent on it updates too
+            wordField.dispatchEvent(new Event('input')); 
+          }
+        }
+
         e.target.value = val;
         updatePatterns(patterns);
       });
@@ -101,7 +165,8 @@ function updatePatterns(patterns) {
 }
 
 export function validateForm() {
-  const inputs = document.querySelectorAll("#dynamicForm input");
+  // Added "select" to querySelector
+  const inputs = document.querySelectorAll("#dynamicForm input, #dynamicForm select");
   let isValid = true;
   let firstError = null;
 
@@ -132,7 +197,8 @@ export function validateForm() {
 }
 
 export function getFormData() {
-  const inputs = document.querySelectorAll("#dynamicForm input, #dynamicForm textarea");
+  // Added "select" to querySelector
+  const inputs = document.querySelectorAll("#dynamicForm input, #dynamicForm textarea, #dynamicForm select");
   const data = {};
   let nameGuess = "";
   inputs.forEach(inp => {

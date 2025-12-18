@@ -139,7 +139,9 @@
         "font_size": 20,
         "align": "left",
         "multiline": false,
-        "group": "APPLICANT 1"
+        "group": "APPLICANT 1",
+        "type": "select",
+        "options": ["MALE", "FEMALE"]
       },
       {
         "name": "DOB",
@@ -299,7 +301,9 @@
         "font_size": 20,
         "align": "left",
         "multiline": false,
-        "group": "APPLICANT 2"
+        "group": "APPLICANT 2",
+        "type": "select",
+        "options": ["MALE", "FEMALE"]
       },
       {
         "name": "DOB",
@@ -503,7 +507,9 @@
         "font_size": 20,
         "align": "left",
         "multiline": false,
-        "group": "APPLICANT 3"
+        "group": "APPLICANT 3",
+        "type": "select",
+        "options": ["MALE", "FEMALE"]
       },
       {
         "name": "DOB",
